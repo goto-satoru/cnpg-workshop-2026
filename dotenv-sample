@@ -1,0 +1,7 @@
+NS_OPERATOR=postgresql-operator-system
+NS_EPAS=edb
+SECRET_NAME=edb-pull-secret
+CNPG_VERSION=1.28.1
+
+CLOUDSMITH=docker.enterprisedb.com
+CS_USER=k8s

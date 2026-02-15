@@ -1,0 +1,12 @@
+apiVersion: postgresql.k8s.enterprisedb.io/v1
+kind: Cluster
+metadata:
+  name: epas16
+  namespace: edb 
+spec:
+  instances: 3
+  imageName: docker.enterprisedb.com/k8s/edb-postgres-advanced:16.11
+  imagePullSecrets:
+  - name: edb-pull-secret
+  storage:
+    size: 1Gi

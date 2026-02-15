@@ -1,0 +1,24 @@
+apiVersion: kind.x-k8s.io/v1alpha4
+kind: Cluster
+name: my-k8s
+networking:
+  apiServerAddress: "0.0.0.0"
+  apiServerPort: 6443
+  kubeProxyMode: "ipvs"
+nodes:
+- role: control-plane
+  image: kindest/node:v1.33.7
+  extraPortMappings:
+  # The API server is exposed via networking.apiServerAddress and apiServerPort
+  - containerPort: 30432
+    hostPort: 5432
+    protocol: TCP
+  - containerPort: 30444
+    hostPort: 5444
+    protocol: TCP
+- role: worker
+  image: kindest/node:v1.33.7
+- role: worker
+  image: kindest/node:v1.33.7
+- role: worker
+  image: kindest/node:v1.33.7
