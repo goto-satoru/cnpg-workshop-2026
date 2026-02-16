@@ -13,6 +13,7 @@
 
 # Kubernetes
 kubeconfig
+kubeconfig.yaml
 *.kubeconfig
 config
 
@@ -33,4 +34,6 @@ Thumbs.db
 node_modules/
 dist/
 build/
-kubeconfig.yaml
+
+# gitguardian
+.cache_ggshield
