@@ -10,6 +10,7 @@ nodes:
   image: kindest/node:v1.33.7
   extraPortMappings:
   # The API server is exposed via networking.apiServerAddress and apiServerPort
+  # Postgres is exposed via hostPort 5432 and 5444, and containerPort 30432 and 30444
   - containerPort: 30432
     hostPort: 5432
     protocol: TCP

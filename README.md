@@ -167,3 +167,4 @@ clusters:
 ## 参考文献
 
 - [EDB CloudNativePG ClusterPostgres - インストールとアップグレード](https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/installation_upgrade/)
+
