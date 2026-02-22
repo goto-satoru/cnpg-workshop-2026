@@ -1,0 +1,41 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backup-storage-creds
+  namespace: edb
+type: Opaque
+stringData:
+  ACCESS_KEY_ID: minio_admin
+  SECRET_ACCESS_KEY: minio_admin_0227
+  AWS_REGION: "us-east-1"
+---
+apiVersion: postgresql.k8s.enterprisedb.io/v1
+kind: Cluster
+metadata:
+  name: epas16
+  namespace: edb
+spec:
+  instances: 3
+  imageName: docker.enterprisedb.com/k8s/edb-postgres-advanced:16.11
+  imagePullSecrets:
+  - name: edb-pull-secret
+  storage:
+    size: 1Gi
+
+  # Backup configuration - MinIO
+  backup:
+    retentionPolicy: "7d" # Keep backups for 7 days
+    barmanObjectStore:
+      destinationPath: "s3://barman"
+      endpointURL: "http://minio.edb.svc.cluster.local:9000"
+      s3Credentials:
+        accessKeyId:
+          name: backup-storage-creds
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: backup-storage-creds
+          key: SECRET_ACCESS_KEY
+      wal:
+        compression: gzip
+        maxParallel: 2
