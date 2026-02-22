@@ -5,3 +5,6 @@ CNPG_VERSION=1.28.1
 
 CLOUDSMITH=docker.enterprisedb.com
 CS_USER=k8s
+
+MINIO_ROOT_USER=minio_admin
+MINIO_ROOT_PASSWORD=

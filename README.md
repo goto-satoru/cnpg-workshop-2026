@@ -1,22 +1,20 @@
 
 # EDB CloudNativePG Cluster 演習
 
-KIND (Kubernetes in Docker) を使用して CloudNativePG クラスターを構築し、EPAS 16 データベースを Barman Object Store バックアップ機能付きでデプロイします。
+KIND (Kubernetes in Docker) を使用して CloudNativePG Cluster をインストール，EPAS 16 DBを Barman Object Store バックアップ機能付きでデプロイします。
 
 
 ## 概要
 
-このプロジェクトでは以下を実現します：
 - KIND クラスター（1コントロールプレーン + 3ワーカーノード）の作成
-- CloudNativePG オペレーターのインストール
+- CloudNativePG Cluster オペレーターのインストール
 - EPAS 16 クラスター（3インスタンス構成）のデプロイ
 - MinIO を使用した Barman Object Store バックアップの設定
 - スケジュールバックアップと手動バックアップの実行
+- MinIO 上のバックアップを用いたリカバリ
 
 
-## プロジェクト構成
-
-### セットアップスクリプト
+### ヘルパー スクリプト
 - `0-create-kind-cluster.sh` - KIND クラスターの作成（`kind/kind-config.yaml` を使用）
 - `1-install-cnpg-c.sh` - CloudNative PostgreSQL オペレーターのインストール（`.env` 設定を使用）
 - `2-deploy-epas16.sh` - EPAS 16 データベースのデプロイ（`cluster-barman.yaml` 使用、NodePort パッチ含む）
@@ -29,10 +27,10 @@ KIND (Kubernetes in Docker) を使用して CloudNativePG クラスターを構�
 - `cluster-barman.yaml` - Barman Object Store（MinIO）を使用したクラスター設定（3インスタンス、7日間保持）
 
 ### クリーンアップスクリプト
-- `8-del-cnpg-c.sh` - CNPG オペレーターとネームスペースの削除
+- `8-del-cnpg-c.sh` - CNPG オペレーターと名前空間の削除
 - `9-del-kind.sh` - KIND クラスター全体の削除
 
-### マニフェストファイル
+### マニフェスト
 - `cluster.yaml` - 基本クラスターマニフェスト（バックアップなし、3インスタンス、1Gi ストレージ）
 - `cluster-barman.yaml` - Barman バックアップ機能付きクラスターマニフェスト（推奨）
 - `scheduled-backup.yaml` - スケジュールバックアップ定義（ScheduledBackup リソース）
@@ -43,10 +41,11 @@ KIND (Kubernetes in Docker) を使用して CloudNativePG クラスターを構�
 
 
 ### ユーティリティスクリプト
+- `bin/set-ns.sh` - 現在のデフォルト名前空間を変更します。EPASクラスタに対する操作を連続して行う場合は，`edb` に設定することを推奨
 - `bin/decode-yaml.sh` - YAML 内の Base64 エンコードされた値を yq でデコード
-- `fwd-port-minio-console.sh` - MinIO コンソールへのポートフォワーディング（localhost:9001）
+- `fwd-port-minio-console.sh` - MinIO コンソールへのポートフォワーディング（http://localhost:9001）
 - `list-cnpg-tags.sh` - CNPG イメージタグのリスト表示（skopeo 使用）
-- `list-epas-tags.sh` - EPAS イメージタグのリスト表示（バージョン 1x）
+- `list-epas-tags.sh` - EPAS イメージタグのリスト表示
 - `list-epas16-tags.sh` - EPAS 16 イメージタグのリスト表示（バージョン 16.x）
 
 ### サンプル SQL
@@ -66,6 +65,7 @@ KIND (Kubernetes in Docker) を使用して CloudNativePG クラスターを構�
 - **[skopeo](https://github.com/containers/skopeo/blob/main/install.md)** - コンテナイメージの検査とタグ一覧取得用
 - **[Helm](https://helm.sh/)** - MinIO インストール用（バックアップ機能を使用する場合）
 - **[yq](https://github.com/mikefarah/yq)** - YAML 処理用（シークレットのデコードに使用）
+
 
 ### EDB サブスクリプション
 - **EDB_SUBSCRIPTION_TOKEN** - EDB のコンテナレジストリ（docker.enterprisedb.com）への認証に必要
@@ -90,13 +90,12 @@ CNPG_VERSION=1.28.1
 
 CLOUDSMITH=docker.enterprisedb.com
 CS_USER=k8s
-EDB_SUBSCRIPTION_TOKEN=your_token_here  # ← これを設定
 ```
 
 
 ## クイックスタート
 
-### 1. KIND クラスターの作成
+### KIND クラスターの作成
 
 ```bash
 ./0-create-kind-cluster.sh
@@ -114,7 +113,7 @@ EDB_SUBSCRIPTION_TOKEN=your_token_here  # ← これを設定
 - ホスト `9000` → コンテナ `39000` (MinIO API)
 - ホスト `9001` → コンテナ `39001` (MinIO コンソール)
 
-### 2. MinIO のインストール（バックアップ用）
+### MinIO のインストール（Barman Cloud用）
 
 ```bash
 ./kind/install-minio.sh
@@ -123,11 +122,11 @@ EDB_SUBSCRIPTION_TOKEN=your_token_here  # ← これを設定
 **MinIO 設定：**
 - ネームスペース: `edb`
 - モード: standalone（単一インスタンス）
-- 管理者: `minio_admin` / `minio_admin_0227`
+- 管理者ユーザ: `minio_admin`
 - ストレージ: 5Gi (PersistentVolume)
 - サービスタイプ: ClusterIP
 
-### 3. CNPG オペレーターのインストール
+### CNPG オペレーターのインストール
 
 ```bash
 ./1-install-cnpg-c.sh
@@ -144,7 +143,7 @@ EDB_SUBSCRIPTION_TOKEN=your_token_here  # ← これを設定
 kubectl get pods -n postgresql-operator-system
 ```
 
-### 4. EPAS 16 クラスターのデプロイ
+### EPAS16 クラスタのデプロイ
 
 ```bash
 ./2-deploy-epas16.sh
@@ -174,13 +173,23 @@ kubectl get pods -n postgresql-operator-system
 4. デプロイメントの準備完了を確認（タイムアウト: 600秒）
 5. `epas16-rw` サービスを NodePort に変更
 
-### 5. サービスの確認
+### kubectl cnp による EPAS16 クラスタのステータス取得
+
+```bash
+kubectl -n edb cnp status epas16 -n edb
+
+k -n edb cnp status epas16 -n edb
+
+watch -n 5 kubectl -n edb cnp status epas16 -n edb
+```
+
+### EPAS16 クラスタ サービスの確認
 
 ```bash
 kubectl -n edb get svc
 ```
 
-期待される出力例：
+出力例：
 ```
 NAME        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
 epas16-r    ClusterIP   10.96.127.18    <none>        5432/TCP         5m
@@ -192,6 +201,12 @@ minio-console ClusterIP 10.96.50.50    <none>        9001/TCP         10m
 
 
 ## EPAS への接続
+
+### cnp プラグインを利用する場合
+
+```bash
+k cnp status epas16 -n edb
+```
 
 ### アプリケーションユーザーのパスワード取得
 
@@ -306,6 +321,13 @@ MinIO コンソールにアクセスしてバックアップを確認：
 - **ユーザー名:** `minio_admin`
 - **パスワード:** `minio_admin_0227`
 - **バケット:** `epas16-backups`
+
+
+## Grafana ダッシュボード
+
+- テンプレート https://github.com/cloudnative-pg/grafana-dashboards/blob/main/charts/cluster/grafana-dashboard.json
+
+
 
 
 ## クリーンアップ

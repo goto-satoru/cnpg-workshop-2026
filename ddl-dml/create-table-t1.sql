@@ -7,9 +7,10 @@ CREATE TABLE IF NOT EXISTS t1 (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Add sample data
+-- Add sample data (5 records)
 INSERT INTO t1 (name, description) VALUES
     ('John Doe', 'Sample record 1'),
     ('Jane Smith', 'Sample record 2'),
-    ('Alice Johnson', 'Sample record 3');
-
+    ('Alice Johnson', 'Sample record 3'),
+    ('Bob Wilson', 'Sample record 4'),
+    ('Carol Davis', 'Sample record 5');
