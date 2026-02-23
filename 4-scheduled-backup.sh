@@ -2,7 +2,7 @@
 
 # Apply scheduled backup configuration for EPAS cluster
 echo "Creating scheduled backup for epas16 cluster..."
-kubectl apply -f scheduled-backup.yaml
+kubectl apply -f cluster-bak-scheduled.yaml
 
 # Check the scheduled backup status
 echo ""

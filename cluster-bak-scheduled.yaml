@@ -5,9 +5,9 @@ metadata:
   namespace: edb
 spec:
   # Cron schedule for the backup job (every 5 minutes in this example)
-  # schedule: "0 */5 * * * *"
+  schedule: "0 */5 * * * *"
   # every single hour at minute 0
-  schedule: "0 0 * * * *"
+  # schedule: "0 0 * * * *"
   # everyday at 2:00 AM
   # schedule: "0 0 2 * * * *"
 
