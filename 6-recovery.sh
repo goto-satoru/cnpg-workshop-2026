@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # restore CNPG cluster from Obj. Storage 
 
 BUCKET_NAME="barman"

@@ -2,7 +2,7 @@
 # https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/installation_upgrade/
 
 set -a
-source .env
+source $HOME/cnpg-c/.env
 set +a
 
 # check $EDB_SUBSCRIPTION_TOKEN
@@ -11,7 +11,7 @@ if [ -z "$EDB_SUBSCRIPTION_TOKEN" ]; then
   exit 1
 fi
 
-echo "Creating Operator and EPAS namespaces..."
+echo "Creating Operator and $NS_OPERATOR and $NS_EPAS namespaces..."
 kubectl create ns $NS_OPERATOR
 kubectl create ns $NS_EPAS 
 
@@ -34,3 +34,5 @@ kubectl rollout status deployment/postgresql-operator-controller-manager -n $NS_
 
 echo "CloudNativePG operator installation complete!"
 kubectl get pods -n $NS_OPERATOR
+
+./kind/install-minio.sh

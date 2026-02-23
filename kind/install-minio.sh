@@ -1,6 +1,10 @@
 #!/bin/sh
 
-source ../.env 
+if [ -f .env ]; then
+    source .env
+elif [ -f ../.env ]; then
+    source ../.env
+fi
 
 if helm repo ls | grep -q minio; then
     echo "MinIO Helm repository already exists. Skipping addition."
@@ -11,7 +15,7 @@ helm repo update minio
 
 helm upgrade --install minio minio/minio \
     --create-namespace \
-    --namespace edb \
+    --namespace $NS_EPAS \
     --set mode=standalone \
     --set rootUser=$MINIO_ROOT_USER \
     --set rootPassword=$MINIO_ROOT_PASSWORD \
@@ -22,5 +26,3 @@ helm upgrade --install minio minio/minio \
     --set service.type=ClusterIP \
     --set consoleService.type=ClusterIP \
     --set replicas=1 
-
-
