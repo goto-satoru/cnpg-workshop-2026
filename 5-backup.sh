@@ -16,4 +16,6 @@ EOF
 
 kubectl get backup -n edb 
 
-
+echo ""
+echo "you can take a backup also with kubectl cnp backup epas15 -n edb"
+echo ""

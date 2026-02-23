@@ -296,4 +296,3 @@ echo "   kubectl logs -n $NAMESPACE -l cnpg.io/cluster=$RESTORE_CLUSTER_NAME -f"
 
 # Clean up temporary file
 # rm -f "$RESTORE_YAML"
-
