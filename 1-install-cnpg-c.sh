@@ -2,7 +2,7 @@
 # https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/installation_upgrade/
 
 set -a
-source $HOME/cnpg-c/.env
+source ./.env
 set +a
 
 # check $EDB_SUBSCRIPTION_TOKEN

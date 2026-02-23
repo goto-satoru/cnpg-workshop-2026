@@ -1,5 +1,10 @@
 ---
 apiVersion: v1
+kind: Namespace
+metadata:
+  name: edb
+---
+apiVersion: v1
 kind: Secret
 metadata:
   name: backup-storage-creds
