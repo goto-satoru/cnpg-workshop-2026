@@ -4,12 +4,12 @@ metadata:
   name: pgbench-0227
   namespace: edb
   labels:
-    app: pgbench-pg18
+    app: pgbench
 spec:
   template:
     metadata:
       labels:
-        app: pgbench-pg18
+        app: pgbench
     spec:
       serviceAccountName: default
       containers:

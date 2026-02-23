@@ -89,6 +89,9 @@ CNPG_VERSION=1.28.1
 
 CLOUDSMITH=docker.enterprisedb.com
 CS_USER=k8s
+
+MINIO_ROOT_USER=minio_admin
+MINIO_ROOT_PASSWORD=your_minio_password
 ```
 
 
@@ -318,8 +321,8 @@ Access MinIO console to verify backups:
 
 Access http://localhost:9001 in browser:
 - **Username:** `minio_admin`
-- **Password:** `minio_admin_0227`
-- **Bucket:** `epas16-backups`
+- **Password:** `xxxxxxxxxxxxxx`
+- **Bucket:** `barman`
 
 
 ## Grafana Dashboard

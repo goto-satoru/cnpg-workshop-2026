@@ -1,4 +1,10 @@
 #!/bin/sh
 
-echo "Forwarding Grafana to http://localhost:3000 "
-kubectl -n postgresql-operator-system port-forward svc/prometheus-grafana 3000:80
+if [ $# -eq 0 ]; then
+    PORT=8080
+else
+    PORT=$1
+fi
+
+echo "Forwarding Grafana to http://localhost:$PORT "
+kubectl -n postgresql-operator-system port-forward svc/prometheus-grafana $PORT:80
