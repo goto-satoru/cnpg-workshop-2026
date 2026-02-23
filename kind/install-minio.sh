@@ -1,7 +1,7 @@
 #!/bin/sh
 
-if [ -f .env ]; then
-    source .env
+if [ -f ./.env ]; then
+    source ./.env
 elif [ -f ../.env ]; then
     source ../.env
 fi
