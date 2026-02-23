@@ -11,4 +11,4 @@ spec:
   storage:
     size: 1Gi
   monitoring:
-    enablePodMonitor: true # deprecated.  Use manually created PodMonitor instead.
+    enablePodMonitor: true # deprecated. Use manually created PodMonitor instead.

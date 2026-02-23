@@ -1,0 +1,78 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pg18-pgbench-0227
+  namespace: edb
+  labels:
+    app: pgbench-pg18
+spec:
+  template:
+    metadata:
+      labels:
+        app: pgbench-pg18
+    spec:
+      serviceAccountName: default
+      containers:
+      - name: pgbench
+        # Using PostgreSQL 18.1 image
+        image: postgres:18.1-alpine
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: PGHOST
+          value: epas16-rw.edb.svc
+        - name: PGPORT
+          value: "5432"
+        - name: PGDATABASE
+          value: postgres
+        - name: PGUSER
+          value: postgres
+        - name: PGPASSWORD
+          value: password
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "=== PGBench Test with PostgreSQL 18.1 ==="
+          echo "Target: epas16-rw.edb.svc"
+          echo "User: $PGUSER"
+          echo "Database: $PGDATABASE"
+          echo ""
+
+          # Wait a bit for network to be ready
+          sleep 2
+
+          # Test connection
+          echo "Testing connection..."
+          if ! psql -c "SELECT version();" > /dev/null 2>&1; then
+            echo "ERROR: Failed to connect to database"
+            exit 1
+          fi
+          echo "✅ Connection successful"
+          echo ""
+
+          # Initialize pgbench
+          echo "Initializing pgbench (scale=10)..."
+          pgbench -i -s 10 --quiet || { echo "Failed to initialize"; exit 1; }
+          echo "✅ Initialization complete"
+          echo ""
+
+          # Run pgbench test
+          echo "Running pgbench test (30 seconds, 4 clients, 2 jobs)..."
+          pgbench \
+            -c 4 \
+            -j 2 \
+            -T 30 \
+            -r \
+            --progress=5
+
+          echo ""
+          echo "✅ PGBench test completed"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "500m"
+          limits:
+            memory: "512Mi"
+            cpu: "1000m"
+      restartPolicy: Never
+  backoffLimit: 1

@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: null
+  labels:
+    pgBenchJob: epas16
+  name: epas16-pgbench-359689
+  namespace: edb
+spec:
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        pgBenchJob: epas16
+    spec:
+      containers:
+      - command:
+        - pgbench
+        env:
+        - name: PGHOST
+          value: epas16-rw
+        - name: PGDATABASE
+          value: app
+        - name: PGPORT
+          value: "5432"
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: epas16-app
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: epas16-app
+        image: docker.enterprisedb.com/k8s/edb-postgres-advanced:16.11
+        imagePullPolicy: IfNotPresent
+        name: pgbench
+        resources: {}
+      restartPolicy: Never
+status: {}
