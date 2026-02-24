@@ -1,85 +1,86 @@
-# EDB CloudNativePG Cluster Hands-On
 
-Install CloudNativePG Cluster and deploy EPAS 16 database with Barman Object Store backup capability using KIND (Kubernetes in Docker).
+# EDB CloudNativePG Cluster 演習
 
-
-## Overview
-
-- Create KIND cluster (1 control plane + 3 worker nodes)
-- Install CloudNativePG Cluster operator
-- Deploy EPAS 16 cluster (3-instance configuration)
-- Configure Barman Object Store backup using MinIO
-- Execute scheduled and manual backups
-- Perform recovery using backups on MinIO
+KIND (Kubernetes in Docker) を使用して CloudNativePG Cluster をインストール，EPAS 16 DBを Barman Object Store バックアップ機能付きでデプロイします。
 
 
-### Helper Scripts
-- `0-create-kind-cluster.sh` - Create KIND cluster (uses `kind/kind-config.yaml`)
-- `1-install-cnpg-c.sh` - Install CloudNative PostgreSQL operator (uses `.env` settings)
-- `2-deploy-epas16.sh` - Deploy EPAS 16 database (uses `cluster-barman.yaml`, includes NodePort patch)
-- `3-patch-epas-svc.sh` - Change EPAS service to NodePort (port 30432)
+## 概要
 
-### Backup Related
-- `4-apply-scheduled-backup.sh` - Apply scheduled backup
-- `5-backup.sh` - Execute manual backup with timestamp
-- `scheduled-backup.yaml` - Scheduled backup manifest (6-field cron format, runs every 3 minutes)
-- `cluster-barman.yaml` - Cluster configuration using Barman Object Store (MinIO) (3 instances, 7-day retention)
-
-### Cleanup Scripts
-- `8-del-cnpg-c.sh` - Delete CNPG operator and namespace
-- `9-del-kind.sh` - Delete entire KIND cluster
-
-### Manifests
-- `cluster.yaml` - Basic cluster manifest (no backup, 3 instances, 1Gi storage)
-- `cluster-barman.yaml` - Cluster manifest with Barman backup (recommended)
-- `scheduled-backup.yaml` - Scheduled backup definition (ScheduledBackup resource)
-- `kind/kind-config.yaml` - KIND cluster configuration (port mapping, 4-node setup)
-
-### Configuration Files
-- `dotenv-sample` - Sample environment variables (copy to `.env` for use)
+- KIND クラスター（1コントロールプレーン + 3ワーカーノード）の作成
+- CloudNativePG Cluster オペレーターのインストール
+- EPAS 16 クラスター（3インスタンス構成）のデプロイ
+- MinIO を使用した Barman Object Store バックアップの設定
+- スケジュールバックアップと手動バックアップの実行
+- MinIO 上のバックアップを用いたリカバリ
 
 
-### Utility Scripts
-- `bin/set-ns.sh` - Change current default namespace. Recommended to set to `edb` when performing continuous operations on EPAS cluster
-- `bin/decode-yaml.sh` - Decode Base64 encoded values in YAML using yq
-- `fwd-port-minio-console.sh` - Port forwarding to MinIO console (http://localhost:9001)
-- `list-cnpg-tags.sh` - List CNPG image tags (uses skopeo)
-- `list-epas-tags.sh` - List EPAS image tags
-- `list-epas16-tags.sh` - List EPAS 16 image tags (version 16.x)
+### ヘルパー スクリプト
+- `0-create-kind-cluster.sh` - KIND クラスターの作成（`kind/kind-config.yaml` を使用）
+- `1-install-cnpg-c.sh` - CloudNative PostgreSQL オペレーターのインストール（`.env` 設定を使用）
+- `2-deploy-epas16.sh` - EPAS 16 データベースのデプロイ（`cluster-barman.yaml` 使用、NodePort パッチ含む）
+- `3-patch-epas-svc.sh` - EPAS サービスを NodePort に変更（ポート 30432）
 
-### Sample SQL
-- `ddl-dml/create-table-t1.sql` - Create sample table t1 with data insertion
+### バックアップ関連
+- `4-apply-scheduled-backup.sh` - スケジュールバックアップの適用
+- `5-backup.sh` - タイムスタンプ付き手動バックアップの実行
+- `scheduled-backup.yaml` - スケジュールバックアップのマニフェスト（6フィールド cron 形式、3分ごと実行）
+- `cluster-barman.yaml` - Barman Object Store（MinIO）を使用したクラスター設定（3インスタンス、7日間保持）
 
-### MinIO Installation
-- `kind/install-minio.sh` - Install MinIO using Helm (standalone mode, 5Gi storage)
+### クリーンアップスクリプト
+- `8-del-cnpg-c.sh` - CNPG オペレーターと名前空間の削除
+- `9-del-kind.sh` - KIND クラスター全体の削除
+
+### マニフェスト
+- `cluster.yaml` - 基本クラスターマニフェスト（バックアップなし、3インスタンス、1Gi ストレージ）
+- `cluster-barman.yaml` - Barman バックアップ機能付きクラスターマニフェスト（推奨）
+- `scheduled-backup.yaml` - スケジュールバックアップ定義（ScheduledBackup リソース）
+- `kind/kind-config.yaml` - KIND クラスター設定（ポートマッピング、4ノード構成）
+
+### 設定ファイル
+- `dotenv-sample` - 環境変数のサンプル（`.env` にコピーして使用）
 
 
-## Prerequisites
+### ユーティリティスクリプト
+- `bin/set-ns.sh` - 現在のデフォルト名前空間を変更します。EPASクラスタに対する操作を連続して行う場合は，`edb` に設定することを推奨
+- `bin/decode-yaml.sh` - YAML 内の Base64 エンコードされた値を yq でデコード
+- `fwd-port-minio-console.sh` - MinIO コンソールへのポートフォワーディング（http://localhost:9001）
+- `list-cnpg-tags.sh` - CNPG イメージタグのリスト表示（skopeo 使用）
+- `list-epas-tags.sh` - EPAS イメージタグのリスト表示
+- `list-epas16-tags.sh` - EPAS 16 イメージタグのリスト表示（バージョン 16.x）
 
-### Required Tools
-- **Docker** - Container runtime
+### サンプル SQL
+- `ddl-dml/create-table-t1.sql` - サンプルテーブル t1 の作成とデータ挿入
+
+### MinIO インストール
+- `kind/install-minio.sh` - Helm を使用した MinIO のインストール（スタンドアロンモード、5Gi ストレージ）
+
+
+## 前提条件
+
+### 必須ツール
+- **Docker** - コンテナランタイム
 - **[kind](https://kind.sigs.k8s.io/)** - Kubernetes in Docker
 - **[kubectl](https://kubernetes.io/docs/tasks/tools/)** - Kubernetes CLI
-- **[kubectl CNPG plugin](https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/kubectl-plugin/)** - For CloudNativePG management
-- **[skopeo](https://github.com/containers/skopeo/blob/main/install.md)** - For container image inspection and tag listing
-- **[Helm](https://helm.sh/)** - For MinIO installation (if using backup feature)
-- **[yq](https://github.com/mikefarah/yq)** - For YAML processing (used for secret decoding)
+- **[kubectl CNPG プラグイン](https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/kubectl-plugin/)** - CloudNativePG 管理用
+- **[skopeo](https://github.com/containers/skopeo/blob/main/install.md)** - コンテナイメージの検査とタグ一覧取得用
+- **[Helm](https://helm.sh/)** - MinIO インストール用（バックアップ機能を使用する場合）
+- **[yq](https://github.com/mikefarah/yq)** - YAML 処理用（シークレットのデコードに使用）
 
 
-### EDB Subscription
-- **EDB_SUBSCRIPTION_TOKEN** - Required for authentication to EDB container registry (docker.enterprisedb.com)
-- Copy `dotenv-sample` to `.env` and set your token
+### EDB サブスクリプション
+- **EDB_SUBSCRIPTION_TOKEN** - EDB のコンテナレジストリ（docker.enterprisedb.com）への認証に必要
+- `dotenv-sample` を `.env` にコピーし、トークンを設定してください
 
 
-## Environment Configuration
+## 環境設定
 
-### 1. Prepare Environment Variable File
+### 1. 環境変数ファイルの準備
 
 ```bash
 cp dotenv-sample .env
 ```
 
-Set the following in the `.env` file:
+`.env` ファイルに以下を設定：
 
 ```bash
 NS_OPERATOR=postgresql-operator-system
@@ -89,90 +90,93 @@ CNPG_VERSION=1.28.1
 
 CLOUDSMITH=docker.enterprisedb.com
 CS_USER=k8s
+
+MINIO_ROOT_USER=minio_admin
+MINIO_ROOT_PASSWORD=your_minio_password
 ```
 
 
-## Quick Start
+## クイックスタート
 
-### Create KIND Cluster
+### KIND クラスターの作成
 
 ```bash
 ./0-create-kind-cluster.sh
 ```
 
-**Created Configuration:**
-- Cluster Name: `my-k8s`
-- Nodes: 1 control plane + 3 workers
-- Kubernetes Version: v1.33.7
+**作成される構成：**
+- クラスター名: `my-k8s`
+- ノード: 1 コントロールプレーン + 3 ワーカー
+- Kubernetes バージョン: v1.33.7
 - kubeProxyMode: ipvs
 
-**Port Mappings:**
-- Host `5432` → Container `30432` (PostgreSQL primary service)
-- Host `5444` → Container `30444` (PostgreSQL secondary service)
-- Host `9000` → Container `39000` (MinIO API)
-- Host `9001` → Container `39001` (MinIO console)
+**ポートマッピング：**
+- ホスト `5432` → コンテナ `30432` (PostgreSQL プライマリサービス)
+- ホスト `5444` → コンテナ `30444` (PostgreSQL セカンダリサービス)
+- ホスト `9000` → コンテナ `39000` (MinIO API)
+- ホスト `9001` → コンテナ `39001` (MinIO コンソール)
 
-### Install MinIO (for Barman Cloud)
+### MinIO のインストール（Barman Cloud用）
 
 ```bash
 ./kind/install-minio.sh
 ```
 
-**MinIO Configuration:**
-- Namespace: `edb`
-- Mode: standalone (single instance)
-- Admin User: `minio_admin`
-- Storage: 5Gi (PersistentVolume)
-- Service Type: ClusterIP
+**MinIO 設定：**
+- ネームスペース: `edb`
+- モード: standalone（単一インスタンス）
+- 管理者ユーザ: `minio_admin`
+- ストレージ: 5Gi (PersistentVolume)
+- サービスタイプ: ClusterIP
 
-### Install CNPG Operator
+### CNPG オペレーターのインストール
 
 ```bash
 ./1-install-cnpg-c.sh
 ```
 
-**Execution Steps:**
-1. Create namespaces: `postgresql-operator-system` and `edb`
-2. Create Docker registry secret: `edb-pull-secret` (for fetching EDB container images)
-3. Deploy CNPG operator (version 1.28.1)
-4. Verify operator startup (timeout: 300 seconds)
+**実行内容：**
+1. ネームスペース作成: `postgresql-operator-system` と `edb`
+2. Docker レジストリシークレット作成: `edb-pull-secret`（EDB コンテナイメージの取得用）
+3. CNPG オペレーターのデプロイ（バージョン 1.28.1）
+4. オペレーターの起動確認（タイムアウト: 300秒）
 
-Verification command:
+確認コマンド：
 ```bash
 kubectl get pods -n postgresql-operator-system
 ```
 
-### Deploy EPAS16 Cluster
+### EPAS16 クラスタのデプロイ
 
 ```bash
 ./2-deploy-epas16.sh
 ```
 
-**Deployed Components:**
-- **Cluster Name:** `epas16`
-- **Namespace:** `edb`
-- **Instances:** 3 (1 primary + 2 standby)
-- **Image:** `docker.enterprisedb.com/k8s/edb-postgres-advanced:16.11`
-- **Storage:** 1Gi per instance
-- **Backup Configuration:**
-  - Backup destination: MinIO (`s3://epas16-backups`)
-  - Retention period: 7 days
-  - WAL compression: gzip
-  - Parallel processing: 2
+**デプロイされるもの：**
+- **クラスター名:** `epas16`
+- **ネームスペース:** `edb`
+- **インスタンス数:** 3（1プライマリ + 2スタンバイ）
+- **イメージ:** `docker.enterprisedb.com/k8s/edb-postgres-advanced:16.11`
+- **ストレージ:** 1Gi per instance
+- **バックアップ設定:**
+  - バックアップ先: MinIO (`s3://epas16-backups`)
+  - 保持期間: 7日間
+  - WAL 圧縮: gzip
+  - 並列処理: 2
 
-**Created Services:**
-- `epas16-rw` (read-write) - NodePort 30432 (connection to primary)
-- `epas16-ro` (read-only) - ClusterIP (read-only connection)  
-- `epas16-r` (replica) - ClusterIP (replica connection)
+**作成されるサービス：**
+- `epas16-rw` (read-write) - NodePort 30432（プライマリへの接続）
+- `epas16-ro` (read-only) - ClusterIP（リードオンリー接続）  
+- `epas16-r` (replica) - ClusterIP（レプリカへの接続）
 
-The script automatically executes:
-1. Apply `cluster-barman.yaml`
-2. Create backup secret
-3. Wait 60 seconds
-4. Verify deployment ready (timeout: 600 seconds)
-5. Change `epas16-rw` service to NodePort
+スクリプトは自動的に以下を実行します：
+1. `cluster-barman.yaml` の適用
+2. バックアップ用シークレット作成
+3. 60秒待機
+4. デプロイメントの準備完了を確認（タイムアウト: 600秒）
+5. `epas16-rw` サービスを NodePort に変更
 
-### Get EPAS16 Cluster Status using kubectl cnp
+### kubectl cnp による EPAS16 クラスタのステータス取得
 
 ```bash
 kubectl -n edb cnp status epas16 -n edb
@@ -182,13 +186,13 @@ k -n edb cnp status epas16 -n edb
 watch -n 5 kubectl -n edb cnp status epas16 -n edb
 ```
 
-### Verify EPAS16 Cluster Services
+### EPAS16 クラスタ サービスの確認
 
 ```bash
 kubectl -n edb get svc
 ```
 
-Example output:
+出力例：
 ```
 NAME        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
 epas16-r    ClusterIP   10.96.127.18    <none>        5432/TCP         5m
@@ -199,228 +203,228 @@ minio-console ClusterIP 10.96.50.50    <none>        9001/TCP         10m
 ```
 
 
-## Connect to EPAS
+## EPAS への接続
 
-### Using cnp Plugin
+### cnp プラグインを利用する場合
 
 ```bash
 k cnp status epas16 -n edb
 ```
 
-### Get Application User Password
+### アプリケーションユーザーのパスワード取得
 
 ```bash
 kubectl -n edb get secret epas16-app -o yaml | ./bin/decode-yaml.sh | grep password:
 ```
 
-Example output:
+出力例：
 ```yaml
 password: your_generated_password
 ```
 
-### Connect from KIND Host
+### KIND ホストからの接続
 
 ```bash
 psql "postgresql://app:<password>@localhost:5432/app"
 ```
 
-### Connect from Remote Host (local PC)
+### リモートホスト（ローカル PC）からの接続
 
 ```bash
 psql "postgresql://app:<password>@<kind_host_ip>:5432/app"
 ```
 
-`<kind_host_ip>` is the public IP address of the host running KIND.
+`<kind_host_ip>` は KIND が実行されているホストのパブリック IP アドレスです。
 
-### Connection Endpoints
+### 接続先の使い分け
 
-- **Read-Write (Primary):** `epas16-rw:5432` - All operations supported
-- **Read-Only:** `epas16-ro:5432` - SELECT queries distributed across multiple replicas
-- **Specific Replica:** `epas16-r:5432` - Direct connection to replica
+- **読み書き (プライマリ):** `epas16-rw:5432` - 全ての操作が可能
+- **読み取り専用:** `epas16-ro:5432` - SELECT クエリを複数レプリカに分散
+- **特定レプリカ:** `epas16-r:5432` - レプリカへの直接接続
 
 
-## Create Sample Table
+## サンプルテーブルの作成
 
 ```bash
 psql -h localhost -U app -d app -f ddl-dml/create-table-t1.sql
 ```
 
-**Created contents:**
-- Table name: `t1`
-- Columns: `id` (SERIAL), `name` (VARCHAR), `description` (TEXT), `created_at`, `updated_at`
-- 3 rows of sample data are inserted
+**作成される内容：**
+- テーブル名: `t1`
+- カラム: `id` (SERIAL), `name` (VARCHAR), `description` (TEXT), `created_at`, `updated_at`
+- 3行のサンプルデータが挿入されます
 
-Verification command:
+確認コマンド：
 ```sql
 SELECT * FROM t1;
 ```
 
 
-## Backup and Recovery
+## バックアップとリカバリ
 
-### Backup Architecture
+### バックアップアーキテクチャ
 
-Backup configuration set in `cluster-barman.yaml`:
-- **Backup Tool:** Barman (Backup and Recovery Manager)
-- **Storage:** MinIO (S3-compatible object storage)
-- **Bucket:** `s3://epas16-backups`
-- **Retention Period:** 7 days (`retentionPolicy: "7d"`)
-- **WAL Archive:** gzip compression, parallel degree 2
-- **Credentials:** Secret `backup-storage-creds`
+`cluster-barman.yaml` で設定されているバックアップ構成：
+- **バックアップツール:** Barman (Backup and Recovery Manager)
+- **ストレージ:** MinIO (S3互換オブジェクトストレージ)
+- **バケット:** `s3://epas16-backups`
+- **保持期間:** 7日間（`retentionPolicy: "7d"`）
+- **WAL アーカイブ:** gzip 圧縮、並列度 2
+- **認証情報:** Secret `backup-storage-creds`
 
-### Configure Scheduled Backup
+### スケジュールバックアップの設定
 
 ```bash
 ./4-apply-scheduled-backup.sh
 ```
 
-**`scheduled-backup.yaml` Configuration:**
-- **Resource Name:** `epas16-scheduled`
-- **Schedule:** `"0 */3 * * * *"` - Run every 3 minutes
-- **Cron Format:** 6 fields (`seconds minutes hours day month weekday`)
-  - Example: `"0 0 2 * * *"` = Every day at 2:00:00 AM
-  - Example: `"0 */10 * * * *"` = Every 10 minutes (at 0 seconds)
-  - Example: `"0 */3 * * * *"` = Every 3 minutes (at 0 seconds - default)
-- **immediate:** `true` - Execute backup immediately upon resource creation
-- **suspend:** `false` - Enable scheduled backup
-- **method:** `barmanObjectStore` - Backup to MinIO
+**`scheduled-backup.yaml` の設定：**
+- **リソース名:** `epas16-scheduled`
+- **スケジュール:** `"0 */3 * * * *"` - 3分ごとに実行
+- **Cron 形式:** 6フィールド（`秒 分 時 日 月 曜日`）
+  - 例: `"0 0 2 * * *"` = 毎日午前2時0分0秒
+  - 例: `"0 */10 * * * *"` = 10分ごと（0秒時点）
+  - 例: `"0 */3 * * * *"` = 3分ごと（0秒時点 - デフォルト設定）
+- **immediate:** `true` - リソース作成時に即座にバックアップを実行
+- **suspend:** `false` - スケジュールバックアップを有効化
+- **method:** `barmanObjectStore` - MinIO へのバックアップ
 
-**Note:** CloudNativePG schedule uses 6-field format (includes seconds). This differs from standard 5-field cron.
+**注意:** CloudNativePG のスケジュールは6フィールド形式（秒を含む）です。標準的な5フィールド cron とは異なります。
 
-### Execute Manual Backup
+### 手動バックアップの実行
 
 ```bash
 ./5-backup.sh
 ```
 
-A backup is created with timestamp (example: `backup-epas16-0222-1530`).
+タイムスタンプ付きのバックアップが作成されます（例: `backup-epas16-0222-1530`）。
 
-### Verify Backups
+### バックアップの確認
 
 ```bash
-# Check scheduled backups
+# スケジュールバックアップの確認
 kubectl get scheduledbackup -n edb
 
-# Check backup history
+# バックアップ履歴の確認
 kubectl get backup -n edb
 
-# Check backup details
+# バックアップの詳細確認
 kubectl describe backup <backup-name> -n edb
 ```
 
-### Verify Backups in MinIO
+### MinIO でのバックアップ確認
 
-Access MinIO console to verify backups:
+MinIO コンソールにアクセスしてバックアップを確認：
 
 ```bash
 ./fwd-port-minio-console.sh
 ```
 
-Access http://localhost:9001 in browser:
-- **Username:** `minio_admin`
-- **Password:** `minio_admin_0227`
-- **Bucket:** `epas16-backups`
+ブラウザで http://localhost:9001 にアクセス：
+- **ユーザー名:** `minio_admin`
+- **パスワード:** `minio_admin_0227`
+- **バケット:** `epas16-backups`
 
 
-## Grafana Dashboard
+## Grafana ダッシュボード
 
-- Template: https://github.com/cloudnative-pg/grafana-dashboards/blob/main/charts/cluster/grafana-dashboard.json
-
-
+- テンプレート https://github.com/cloudnative-pg/grafana-dashboards/blob/main/charts/cluster/grafana-dashboard.json
 
 
-## Cleanup
 
-### Option 1: Delete CNPG Resources Only
+
+## クリーンアップ
+
+### オプション 1: CNPG リソースのみ削除
 
 ```bash
 ./8-del-cnpg-c.sh
 ```
 
-**Deleted items:**
-- CNPG operator (`postgresql-operator-system` namespace)
-- EPAS cluster (`edb` namespace)
-- All related resources (Pods, Services, PVCs, Secrets)
+**削除されるもの：**
+- CNPG オペレーター（`postgresql-operator-system` ネームスペース）
+- EPAS クラスター（`edb` ネームスペース）
+- すべての関連リソース（Pods、Services、PVCs、Secrets）
 
-KIND cluster itself remains. You can rerun from `./1-install-cnpg-c.sh`.
+KIND クラスター自体は残ります。再度 `./1-install-cnpg-c.sh` から実行してやり直すことができます。
 
-### Option 2: Delete Entire KIND Cluster
+### オプション 2: KIND クラスター全体の削除
 
 ```bash
 ./9-del-kind.sh
 ```
 
-**Deleted items:**
-- Entire KIND cluster `my-k8s`
-- All nodes (control plane + 3 workers)
-- All data, backups, and configuration
+**削除されるもの：**
+- KIND クラスター `my-k8s` 全体
+- すべてのノード（コントロールプレーン + 3ワーカー）
+- すべてのデータ、バックアップ、設定
 
-**WARNING:** This operation is irreversible. All data will be lost.
+**警告:** この操作は元に戻せません。すべてのデータが失われます。
 
-## Tips and Operational Commands
+## Tips と運用コマンド
 
-### Check Cluster Status
+### クラスター状態の確認
 
 ```bash
-# Cluster overview
+# クラスターの概要
 kubectl get cluster -n edb
 
-# Pod status
+# Pod の状態
 kubectl get pods -n edb
 
-# Detailed status using CNPG plugin
+# CNPG プラグインを使用した詳細状態
 kubectl cnpg status epas16 -n edb
 
-# Cluster details
+# クラスターの詳細情報
 kubectl describe cluster epas16 -n edb
 ```
 
-### Check Logs
+### ログの確認
 
 ```bash
-# Primary Pod logs
+# プライマリ Pod のログ
 kubectl logs -n edb epas16-1 -f
 
-# Operator logs
+# オペレーターのログ
 kubectl logs -n postgresql-operator-system deployment/postgresql-operator-controller-manager -f
 ```
 
-### Access MinIO Console
+### MinIO コンソールへのアクセス
 
-To access the backup storage (MinIO) console:
+バックアップストレージ（MinIO）のコンソールにアクセスするには：
 
 ```bash
 ./fwd-port-minio-console.sh
 ```
 
-Then access http://localhost:9001 in browser.
-- **Username:** `minio_admin`
-- **Password:** `minio_admin_0227`
+その後、ブラウザで http://localhost:9001 にアクセスします。
+- **ユーザー名:** `minio_admin`
+- **パスワード:** `minio_admin_0227`
 
-### Check Available Image Tags
+### 利用可能なイメージタグの確認
 
-To check available Docker image tags for CNPG or EPAS:
+CNPG や EPAS の Docker イメージタグを確認するには：
 
 ```bash
-# CNPG operator version list (example: 1.28.1)
+# CNPG オペレーターのバージョン一覧（例: 1.28.1）
 ./list-cnpg-tags.sh
 
-# EPAS all version tags (10.x, 11.x, 12.x, 13.x, 14.x, 15.x, 16.x)
+# EPAS 全バージョンのタグ一覧（10.x, 11.x, 12.x, 13.x, 14.x, 15.x, 16.x）
 ./list-epas-tags.sh
 
-# EPAS 16.x tags (example: 16.11)
+# EPAS 16.x のタグ一覧（例: 16.11）
 ./list-epas16-tags.sh
 ```
 
-**Note:** These scripts require `skopeo` and environment variable `EDB_SUBSCRIPTION_TOKEN`.
+**注意:** これらのスクリプトは `skopeo` と環境変数 `EDB_SUBSCRIPTION_TOKEN` を必要とします。
 
-### Check Host Port Mappings
+### ホストポートマッピングの確認
 
 ```bash
 docker ps --format "table {{.Names}}\t{{.Ports}}"
 ```
 
-Expected output:
+期待される出力：
 ```
 NAMES                  PORTS
 my-k8s-control-plane   0.0.0.0:6443->6443/tcp, 0.0.0.0:5432->30432/tcp, 0.0.0.0:5444->30444/tcp, 0.0.0.0:9000->39000/tcp, 0.0.0.0:9001->39001/tcp
@@ -429,11 +433,11 @@ my-k8s-worker2
 my-k8s-worker3         
 ``` 
 
-### Get KIND kubeconfig and Remote Access
+### KIND の kubeconfig 取得とリモートアクセス
 
-#### Get kubeconfig
+#### kubeconfig の取得
 
-To obtain kubeconfig for KIND cluster and use with kubectl:
+KIND クラスターの kubeconfig を取得し、kubectl で利用するには：
 
 ```bash
 kind get kubeconfig --name my-k8s > kubeconfig.yaml
@@ -441,13 +445,13 @@ export KUBECONFIG=kubeconfig.yaml
 kubectl cluster-info
 ```
 
-This outputs cluster configuration to `kubeconfig.yaml`, which becomes active in that shell session.
+これで `kubeconfig.yaml` にクラスター設定が出力され、そのシェルセッションで有効になります。
 
-#### Access KIND Cluster from Remote Host
+#### リモートホストから KIND クラスターへアクセス
 
-To connect from remote local PC to KIND cluster, modify kubeconfig:
+リモートのローカル PC から KIND クラスターに接続する場合は、kubeconfig を修正します：
 
-**Before:**
+**修正前：**
 ```yaml
 apiVersion: v1
 clusters:
@@ -470,13 +474,13 @@ users:
     client-key-data: LS0tLS1CRUdJTi...
 ```
 
-**After:**
+**修正後：**
 ```yaml
 apiVersion: v1
 clusters:
 - cluster:
-    insecure-skip-tls-verify: true  # Skip certificate verification (test environment only)
-    server: https://192.168.1.100:6443  # Change to actual IP address of KIND host
+    insecure-skip-tls-verify: true  # 証明書検証をスキップ（テスト環境のみ）
+    server: https://192.168.1.100:6443  # KIND ホストの実際の IP アドレスに変更
   name: kind-my-k8s
 contexts:
 - context:
@@ -493,13 +497,13 @@ users:
     client-key-data: LS0tLS1CRUdJTi...
 ```
 
-**Changes:**
-1. Change `certificate-authority-data` to `insecure-skip-tls-verify: true`
-2. Change `server` from `0.0.0.0` to actual IP address of KIND host
+**変更点：**
+1. `certificate-authority-data` を `insecure-skip-tls-verify: true` に変更
+2. `server` の `0.0.0.0` を KIND ホストの実際の IP アドレスに変更
 
-**WARNING:** Do not use `insecure-skip-tls-verify: true` in production. This is test environment only.
+**警告:** `insecure-skip-tls-verify: true` は本番環境では使用しないでください。テスト環境専用です。
 
-Now you can run kubectl commands from local PC:
+これで、ローカル PC から kubectl コマンドを実行できます：
 
 ```bash
 export KUBECONFIG=/path/to/kubeconfig.yaml
@@ -508,96 +512,96 @@ kubectl get pods -n edb
 ```
 
 
-## Troubleshooting
+## トラブルシューティング
 
-### Pod fails to start
+### Pod が起動しない場合
 
 ```bash
-# Check Pod status
+# Pod の状態確認
 kubectl get pods -n edb
 
-# Pod details
+# Pod の詳細情報
 kubectl describe pod <pod-name> -n edb
 
-# Check events
+# イベント確認
 kubectl get events -n edb --sort-by='.lastTimestamp'
 ```
 
-### Image pull failure
+### イメージプルエラー
 
 ```bash
-# Check secret
+# シークレットの確認
 kubectl get secret edb-pull-secret -n edb
 
-# Secret details
+# シークレットの詳細確認
 kubectl describe secret edb-pull-secret -n edb
 
-# Verify EDB_SUBSCRIPTION_TOKEN is correctly set
+# EDB_SUBSCRIPTION_TOKEN が正しく設定されているか確認
 echo $EDB_SUBSCRIPTION_TOKEN
 ```
 
-### Backup failure
+### バックアップが失敗する場合
 
 ```bash
-# Check backup status
+# バックアップ状態の確認
 kubectl get backup -n edb
 
-# Backup details
+# バックアップの詳細
 kubectl describe backup <backup-name> -n edb
 
-# Check MinIO Pod status
+# MinIO Pod の状態確認
 kubectl get pods -n edb | grep minio
 
-# Check MinIO logs
+# MinIO のログ確認
 kubectl logs -n edb <minio-pod-name>
 ```
 
-### Cannot connect to database
+### データベースに接続できない場合
 
 ```bash
-# Check services
+# サービスの確認
 kubectl get svc -n edb
 
-# Check NodePort
+# NodePort の確認
 kubectl get svc epas16-rw -n edb -o jsonpath='{.spec.ports[0].nodePort}'
 
-# Try direct connection via port-forward
+# ポートフォワーディングで直接接続を試す
 kubectl port-forward -n edb svc/epas16-rw 5432:5432
 ```
 
 
-## Technical Specifications
+## 技術仕様
 
-### Cluster Configuration
-- **PostgreSQL Version:** EDB Postgres Advanced Server 16.11
-- **Instances:** 3 (1 primary + 2 standby)
-- **Replication:** Streaming replication (synchronous/asynchronous)
-- **Storage:** 1Gi per instance (PersistentVolume)
-- **High Availability:** Automatic failover (managed by CNPG operator)
+### クラスター構成
+- **PostgreSQL バージョン:** EDB Postgres Advanced Server 16.11
+- **インスタンス数:** 3（1プライマリ + 2スタンバイ）
+- **レプリケーション:** ストリーミングレプリケーション（同期/非同期）
+- **ストレージ:** 1Gi per instance（PersistentVolume）
+- **高可用性:** 自動フェイルオーバー（CNPG オペレーターが管理）
 
-### Backup Configuration
-- **Backup Tool:** Barman 2.x
-- **Storage Backend:** MinIO (S3-compatible)
-- **Backup Type:** Full backup + WAL archive
-- **Retention Period:** 7 days
-- **Compression:** gzip
-- **Parallel Processing:** 2 streams
+### バックアップ構成
+- **バックアップツール:** Barman 2.x
+- **ストレージバックエンド:** MinIO (S3互換)
+- **バックアップタイプ:** フルバックアップ + WAL アーカイブ
+- **保持期間:** 7日間
+- **圧縮:** gzip
+- **並列処理:** 2ストリーム
 
-### Network
-- **CNI:** KIND default (kindnet)
-- **kube-proxy Mode:** IPVS
-- **Service Types:** ClusterIP + NodePort
+### ネットワーク
+- **CNI:** KIND デフォルト（kindnet）
+- **kube-proxy モード:** IPVS
+- **サービスタイプ:** ClusterIP + NodePort
 
 
-## References
+## 参考文献
 
-### Official Documentation
+### 公式ドキュメント
 - [EDB Postgres for Kubernetes - Installation and Upgrade](https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/installation_upgrade/)
 - [EDB Postgres for Kubernetes - Backup and Recovery](https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/backup_recovery/)
 - [CloudNativePG - Scheduled Backups](https://cloudnative-pg.io/documentation/current/backup/)
 - [KIND - Quick Start](https://kind.sigs.k8s.io/docs/user/quick-start/)
 
-### Community
+### コミュニティ
 - [CloudNativePG GitHub](https://github.com/cloudnative-pg/cloudnative-pg)
 - [EDB Community](https://www.enterprisedb.com/community)
 

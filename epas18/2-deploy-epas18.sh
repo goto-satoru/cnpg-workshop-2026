@@ -5,10 +5,17 @@ source ../.env
 set +a
 
 echo "Deploying EPAS 18 cluster..."
+
+kubectl create secret docker-registry $SECRET_NAME \
+ --docker-server=$CLOUDSMITH \
+ --docker-username=$CS_USER \
+ --docker-password=$EDB_SUBSCRIPTION_TOKEN \
+ -n $NS_EPAS
+
 kubectl apply -f cluster-epas18.yaml
 
-# wait for the cluster to be ready
-echo "Waiting for EPAS 18 cluster to be ready..."
-
-sleep 60 # initial wait before checking status
-kubectl wait --for=condition=Available=True --timeout=300s deployment/epas18-rw -n $NS_EPAS
+echo "" 
+echo "Run following to monitor the cluster creation process:"
+echo ""
+echo "kubectl cnp status epas18 -n $NS_EPAS"
+echo "watch kubectl cnp status epas18 -n $NS_EPAS"
