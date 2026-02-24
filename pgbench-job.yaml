@@ -27,7 +27,7 @@ spec:
         - name: PGUSER
           value: postgres
         - name: PGPASSWORD
-          value: password
+          value: password # Update with actual password
         command:
         - /bin/sh
         - -c
