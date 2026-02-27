@@ -1,8 +1,16 @@
 
-# EDB CloudNativePG Cluster 演習
+# EDB CloudNativePG Cluster ワークショップ
 
 KIND (Kubernetes in Docker) を使用して CloudNativePG Cluster をインストール，EPAS 16 DBを Barman Object Store バックアップ機能付きでデプロイします。
 
+## 演習環境の構築
+
+Alma Linux 9 / Rocky Linux 9 上で 以下のコマンドを実行
+
+```bash
+cd workshop-setup
+sh installation.sh
+```
 
 ## 概要
 
@@ -43,7 +51,7 @@ KIND (Kubernetes in Docker) を使用して CloudNativePG Cluster をインス�
 ### ユーティリティスクリプト
 - `bin/set-ns.sh` - 現在のデフォルト名前空間を変更します。EPASクラスタに対する操作を連続して行う場合は，`edb` に設定することを推奨
 - `bin/decode-yaml.sh` - YAML 内の Base64 エンコードされた値を yq でデコード
-- `fwd-port-minio-console.sh` - MinIO コンソールへのポートフォワーディング（http://localhost:9001）
+- `fwd-port-minio-console.sh` - MinIO コンソールへのポート転送（http://localhost:9001）
 - `list-cnpg-tags.sh` - CNPG イメージタグのリスト表示（skopeo 使用）
 - `list-epas-tags.sh` - EPAS イメージタグのリスト表示
 - `list-epas16-tags.sh` - EPAS 16 イメージタグのリスト表示（バージョン 16.x）
@@ -69,7 +77,8 @@ KIND (Kubernetes in Docker) を使用して CloudNativePG Cluster をインス�
 
 ### EDB サブスクリプション
 - **EDB_SUBSCRIPTION_TOKEN** - EDB のコンテナレジストリ（docker.enterprisedb.com）への認証に必要
-- `dotenv-sample` を `.env` にコピーし、トークンを設定してください
+  EDB アカウント取得の上，https://www.enterprisedb.com/repos-downloads でトークンを取得します。
+- `dotenv-sample` を `.env` にコピーし、``DB_SUBSCRIPTION_TOKEN`` を設定してください
 
 
 ## 環境設定
@@ -604,4 +613,3 @@ kubectl port-forward -n edb svc/epas16-rw 5432:5432
 ### コミュニティ
 - [CloudNativePG GitHub](https://github.com/cloudnative-pg/cloudnative-pg)
 - [EDB Community](https://www.enterprisedb.com/community)
-
