@@ -1,7 +1,7 @@
 
 # EDB CloudNativePG Cluster ワークショップ
 
-KIND (Kubernetes in Docker) を使用して CloudNativePG Cluster をインストール，EPAS 16 DBを Barman Object Store バックアップ機能付きでデプロイします。
+KIND (Kubernetes in Docker) を使用して CloudNativePG Cluster をインストール，[EDB Postgres Advanced Server(EPAS)](https://www.enterprisedb.com/docs/epas/) 16 DB クラスタ を Barman Object Store バックアップ機能付きでデプロイします。
 
 ## 演習環境の構築
 
@@ -9,20 +9,20 @@ Alma Linux 9 / Rocky Linux 9 上で 以下のコマンドを実行
 
 ```bash
 cd workshop-setup
-sh installation.sh
+sh install.sh
 ```
 
 ## 概要
 
 - KIND クラスター（1コントロールプレーン + 3ワーカーノード）の作成
 - CloudNativePG Cluster オペレーターのインストール
-- EPAS 16 クラスター（3インスタンス構成）のデプロイ
-- MinIO を使用した Barman Object Store バックアップの設定
+- [EPAS](https://www.enterprisedb.com/docs/epas/) 16 クラスター（3インスタンス構成）のデプロイ
+- [MinIO](https://www.min.io/) を対象とした Barman Object Store バックアップの設定
 - スケジュールバックアップと手動バックアップの実行
 - MinIO 上のバックアップを用いたリカバリ
+- Grafana ダッシュボードの利用
 
-
-### ヘルパー スクリプト
+### Helper Scripts
 - `0-create-kind-cluster.sh` - KIND クラスターの作成（`kind/kind-config.yaml` を使用）
 - `1-install-cnpg-c.sh` - CloudNative PostgreSQL オペレーターのインストール（`.env` 設定を使用）
 - `2-deploy-epas16.sh` - EPAS 16 データベースのデプロイ（`cluster-barman.yaml` 使用、NodePort パッチ含む）
@@ -598,22 +598,16 @@ kubectl port-forward -n edb svc/epas16-rw 5432:5432
 
 ### ネットワーク
 - **CNI:** KIND デフォルト（kindnet）
-- **kube-proxy モード:** IPVS
 - **サービスタイプ:** ClusterIP + NodePort
 
 
 ## 参考文献
 
 ### 公式ドキュメント
-- [EDB Postgres for Kubernetes - Installation and Upgrade](https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/installation_upgrade/)
-- [EDB Postgres for Kubernetes - Backup and Recovery](https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/backup_recovery/)
+- [EDB CNPG Cluster - Installation and Upgrade](https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/installation_upgrade/)
+- [EDB CNPG Cluster - Backup and Recovery](https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/backup_recovery/)
 - [CloudNativePG - Scheduled Backups](https://cloudnative-pg.io/documentation/current/backup/)
 - [KIND - Quick Start](https://kind.sigs.k8s.io/docs/user/quick-start/)
 
-### コミュニティ
+### コミュニティ版 CloudNativePG 
 - [CloudNativePG GitHub](https://github.com/cloudnative-pg/cloudnative-pg)
-- [EDB Community](https://www.enterprisedb.com/community)
-
-
-
-
