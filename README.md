@@ -613,3 +613,7 @@ kubectl port-forward -n edb svc/epas16-rw 5432:5432
 ### コミュニティ
 - [CloudNativePG GitHub](https://github.com/cloudnative-pg/cloudnative-pg)
 - [EDB Community](https://www.enterprisedb.com/community)
+
+
+
+

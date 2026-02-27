@@ -36,4 +36,6 @@ dist/
 build/
 
 # gitguardian
+.cache_ggshield/*
 .cache_ggshield
+
