@@ -10,6 +10,13 @@ sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin d
 sudo systemctl enable --now docker
 sudo usermod -aG docker $USER
 
+# Allow password authentication with sshd
+sudo sed -i 's/^PasswordAuthentication no$/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sudo sed -i 's/^PasswordAuthentication no$/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/01-localconfig.conf
+sudo sed -i 's/^PasswordAuthentication no$/PasswordAuthentication yes/' /etc/ssh/sshd_config.d/50-cloud-init.conf
+sudo systemctl restart sshd
+
+
 # install kubectl
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
@@ -38,3 +45,18 @@ echo "#------------------------------------------------" >> ~/.bashrc
 echo ""
 echo "K8s/CNPG Tools installed in /usr/local/bin:"
 ls -l /usr/local/bin
+
+echo "================================================="
+echo "open https://www.enterprisedb.com/repos-downloads"
+echo ""
+echo " to get Repo Token for CNPG/EPAS(EDB Postgres Advanced Server) image pull secret"
+
+# Ask for EDB Subscription Token
+read -p "Enter Repo Token: " EDB_SUBSCRIPTION_TOKEN
+if [ -z "$EDB_SUBSCRIPTION_TOKEN" ]; then
+  echo "Error: EDB_SUBSCRIPTION_TOKEN is required"
+  exit 1
+fi
+export EDB_SUBSCRIPTION_TOKEN=$EDB_SUBSCRIPTION_TOKEN
+
+echo "export EDB_SUBSCRIPTION_TOKEN=$EDB_SUBSCRIPTION_TOKEN" >> ~/.bashrc

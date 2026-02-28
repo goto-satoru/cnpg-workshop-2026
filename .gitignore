@@ -16,6 +16,7 @@ kubeconfig
 kubeconfig.yaml
 *.kubeconfig
 config
+config.*
 
 # Logs
 *.log
@@ -38,4 +39,3 @@ build/
 # gitguardian
 .cache_ggshield/*
 .cache_ggshield
-
