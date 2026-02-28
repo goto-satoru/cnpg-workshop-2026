@@ -31,10 +31,9 @@ echo 'source /usr/share/bash-completion/bash_completion' >> ~/.bashrc
 echo 'source <(kind completion bash)' >> ~/.bashrc
 echo 'source <(helm completion bash)' >> ~/.bashrc
 echo 'source <(kubectl completion bash)' >> ~/.bashrc
-echo 'source <(kubectl-cnpg completion bash)' >> ~/.bashrc
 echo 'alias k=kubectl' >> ~/.bashrc
 echo 'complete -o default -F __start_kubectl k' >> ~/.bashrc
-echo "------------------------------------------------" >> ~/.bashrc
+echo "#------------------------------------------------" >> ~/.bashrc
 
 echo ""
 echo "K8s/CNPG Tools installed in /usr/local/bin:"
