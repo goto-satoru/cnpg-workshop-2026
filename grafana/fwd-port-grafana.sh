@@ -1,7 +1,7 @@
 #!/bin/sh
 
 if [ $# -eq 0 ]; then
-    PORT=8080
+    PORT=30080
 else
     PORT=$1
 fi

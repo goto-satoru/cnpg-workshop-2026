@@ -75,15 +75,15 @@ sh install.sh
 - **[yq](https://github.com/mikefarah/yq)** - YAML 処理用（シークレットのデコードに使用）
 
 
-### EDB サブスクリプション
-- **EDB_SUBSCRIPTION_TOKEN** - EDB のコンテナレジストリ（docker.enterprisedb.com）への認証に必要
+### EDB サブスクリプション トークン
+- **EDB_SUBSCRIPTION_TOKEN** - EDB のコンテナレジストリ（docker.enterprisedb.com）への認証に必要。
   EDB アカウント取得の上，https://www.enterprisedb.com/repos-downloads でトークンを取得します。
 - `dotenv-sample` を `.env` にコピーし、``DB_SUBSCRIPTION_TOKEN`` を設定してください
 
 
 ## 環境設定
 
-### 1. 環境変数ファイルの準備
+### 環境変数ファイルの準備
 
 ```bash
 cp dotenv-sample .env
