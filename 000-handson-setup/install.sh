@@ -1,5 +1,5 @@
 #!/bin/sh
-# CNPG Cluster hands-on setup
+# CNPG Cluster hands-on setup for AlmaLinux 9 / Rocky Linux 9
 
 sudo dnf update -y
 sudo dnf install -y git wget curl bash-completion

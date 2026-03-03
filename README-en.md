@@ -12,6 +12,9 @@ Install CloudNativePG Cluster and deploy EPAS 16 database with Barman Object Sto
 - Execute scheduled and manual backups
 - Perform recovery using backups on MinIO
 
+### for those who does not have any kind clueter
+
+`000-handson-setup/install.sh` - setup kind / install kubectl, helm, skopeo, git, curl, wget on AlmaLinux 9 or Rocky Linux 9
 
 ### Helper Scripts
 - `0-create-kind-cluster.sh` - Create KIND cluster (uses `kind/kind-config.yaml`)
@@ -603,4 +606,3 @@ kubectl port-forward -n edb svc/epas16-rw 5432:5432
 ### Community
 - [CloudNativePG GitHub](https://github.com/cloudnative-pg/cloudnative-pg)
 - [EDB Community](https://www.enterprisedb.com/community)
-

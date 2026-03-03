@@ -23,20 +23,29 @@ sh install.sh
 - Grafana ダッシュボードの利用
 
 ### Helper Scripts
-- `0-create-kind-cluster.sh` - KIND クラスターの作成（`kind/kind-config.yaml` を使用）
-- `1-install-cnpg-c.sh` - CloudNative PostgreSQL オペレーターのインストール（`.env` 設定を使用）
-- `2-deploy-epas16.sh` - EPAS 16 データベースのデプロイ（`cluster-barman.yaml` 使用、NodePort パッチ含む）
-- `3-patch-epas-svc.sh` - EPAS サービスを NodePort に変更（ポート 30432）
+
+| スクリプト | 説明 |
+|---|---|
+| `0-create-kind-cluster.sh` | KIND クラスターの作成（`kind/kind-config.yaml` を使用） |
+| `1-install-cnpg-c.sh` | CloudNative PostgreSQL オペレーターのインストール（`.env` 設定を使用） |
+| `2-deploy-epas16.sh` | EPAS 16 データベースのデプロイ（`cluster-barman.yaml` 使用、NodePort パッチ含む） |
+| `3-patch-epas-svc.sh` | EPAS サービスを NodePort に変更（ポート 30432） |
 
 ### バックアップ関連
-- `4-apply-scheduled-backup.sh` - スケジュールバックアップの適用
-- `5-backup.sh` - タイムスタンプ付き手動バックアップの実行
-- `scheduled-backup.yaml` - スケジュールバックアップのマニフェスト（6フィールド cron 形式、3分ごと実行）
-- `cluster-barman.yaml` - Barman Object Store（MinIO）を使用したクラスター設定（3インスタンス、7日間保持）
+
+| ファイル/スクリプト | 説明 |
+|---|---|
+| `4-apply-scheduled-backup.sh` | スケジュールバックアップの適用 |
+| `5-backup.sh` | タイムスタンプ付き手動バックアップの実行 |
+| `scheduled-backup.yaml` | スケジュールバックアップのマニフェスト（6フィールド cron 形式、3分ごと実行） |
+| `cluster-barman.yaml` | Barman Object Store（MinIO）を使用したクラスター設定（3インスタンス、7日間保持） |
 
 ### クリーンアップスクリプト
-- `8-del-cnpg-c.sh` - CNPG オペレーターと名前空間の削除
-- `9-del-kind.sh` - KIND クラスター全体の削除
+
+| スクリプト | 説明 |
+|---|---|
+| `8-del-cnpg-c.sh` | CNPG オペレーターと名前空間の削除 |
+| `9-del-kind.sh` | KIND クラスター全体の削除 |
 
 ### マニフェスト
 - `cluster.yaml` - 基本クラスターマニフェスト（バックアップなし、3インスタンス、1Gi ストレージ）

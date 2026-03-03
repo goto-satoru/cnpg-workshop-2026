@@ -6,11 +6,11 @@ set +a
 
 echo "Deploying EPAS 16 cluster..."
 
-# kubectl create secret docker-registry $SECRET_NAME \
-#  --docker-server=$CLOUDSMITH \
-#  --docker-username=$CS_USER \
-#  --docker-password=$EDB_SUBSCRIPTION_TOKEN \
-#  -n $NS_EPAS
+kubectl create secret docker-registry $SECRET_NAME \
+ --docker-server=$CLOUDSMITH \
+ --docker-username=$CS_USER \
+ --docker-password=$EDB_SUBSCRIPTION_TOKEN \
+ -n $NS_EPAS
 
 kubectl apply -f cluster-barman.yaml
 
