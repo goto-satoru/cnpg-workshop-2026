@@ -1,5 +1,7 @@
 
-# EDB CloudNativePG Cluster ワークショップ
+# EDB CloudNativePG Cluster workshop 
+
+English version of this README is vailable as README-en.md
 
 KIND (Kubernetes in Docker) を使用して CloudNativePG Cluster をインストール，[EDB Postgres Advanced Server(EPAS)](https://www.enterprisedb.com/docs/epas/) 16 DB クラスタ を Barman Object Store バックアップ機能付きでデプロイします。
 
