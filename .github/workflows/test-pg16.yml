@@ -12,7 +12,7 @@ on:
 
 env:
   # PostgreSQL version to use
-  POSTGRES_IMAGE: 'postgres:16-alpine'
+  # POSTGRES_IMAGE: 'postgres:16-alpine'
   POSTGRES_DB: testdb
   POSTGRES_USER: testuser
   POSTGRES_PASSWORD: testpass123
@@ -24,11 +24,12 @@ jobs:
     
     services:
       postgres:
-        image: ${{ env.POSTGRES_IMAGE }}
+        # use the latest PostgreSQL 16 image from Docker Hub
+        image: postgres:16-alpine
         env:
-          POSTGRES_DB: ${{ env.POSTGRES_DB }}
-          POSTGRES_USER: ${{ env.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: testdb
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass123
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
