@@ -1,4 +1,4 @@
-name: PostgreSQL 16 Testing Suite
+name: EPAS 16.13 Testing Suite
 
 on:
   push:
@@ -11,12 +11,17 @@ on:
   workflow_dispatch:
 
 env:
-  # PostgreSQL version to use
+  # EPAS version to use
   POSTGRES_VERSION: '16.13'
-
+  EPAS_IMAGE: 'docker.enterprisedb.com/k8s/edb-postgres-advanced:16.13'
+  
   POSTGRES_DB: testdb
   POSTGRES_USER: testuser
   POSTGRES_PASSWORD: testpass123
+  
+  # EDB Registry credentials (set these in GitHub Secrets)
+  EDB_REGISTRY_USER: 'k8s'
+  EDB_SUBSCRIPTION_TOKEN: ${{ secrets.EDB_SUBSCRIPTION_TOKEN }}
 
 jobs:
   compatibility-test:
@@ -25,11 +30,15 @@ jobs:
     
     services:
       postgres:
-        image: postgres:16-alpine
+        image: ${{ env.EPAS_IMAGE }}
+        credentials:
+          username: k8s
+          password: ${{ secrets.EDB_SUBSCRIPTION_TOKEN }}
         env:
           POSTGRES_DB: ${{ env.POSTGRES_DB }}
           POSTGRES_USER: ${{ env.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          ACCEPT_EULA: 'Yes'
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -171,11 +180,15 @@ jobs:
     
     services:
       postgres:
-        image: postgres:16-alpine
+        image: docker.enterprisedb.com/k8s/edb-postgres-advanced:16.13
+        credentials:
+          username: k8s
+          password: ${{ secrets.EDB_SUBSCRIPTION_TOKEN }}
         env:
           POSTGRES_DB: ${{ env.POSTGRES_DB }}
           POSTGRES_USER: ${{ env.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          ACCEPT_EULA: 'Yes'
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -310,10 +323,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Trivy vulnerability scanner on PostgreSQL 16 image
+      - name: Login to EDB Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: docker.enterprisedb.com
+          username: k8s
+          password: ${{ secrets.EDB_SUBSCRIPTION_TOKEN }}
+
+      - name: Run Trivy vulnerability scanner on EPAS 16.13 image
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'postgres:16-alpine'
+          image-ref: 'docker.enterprisedb.com/k8s/edb-postgres-advanced:16.13'
           format: 'table'
           exit-code: '0'
           severity: 'CRITICAL,HIGH'
@@ -322,7 +342,7 @@ jobs:
       - name: Run Trivy vulnerability scanner (JSON output)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'postgres:16-alpine'
+          image-ref: 'docker.enterprisedb.com/k8s/edb-postgres-advanced:16.13'
           format: 'json'
           output: 'trivy-results.json'
           severity: 'CRITICAL,HIGH'
@@ -368,11 +388,15 @@ jobs:
     
     services:
       postgres:
-        image: postgres:16-alpine
+        image: docker.enterprisedb.com/k8s/edb-postgres-advanced:16.13
+        credentials:
+          username: k8s
+          password: ${{ secrets.EDB_SUBSCRIPTION_TOKEN }}
         env:
           POSTGRES_DB: ${{ env.POSTGRES_DB }}
           POSTGRES_USER: ${{ env.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          ACCEPT_EULA: 'Yes'
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -468,8 +492,8 @@ jobs:
           echo "- **Vulnerability Scan**: ${{ needs.vulnerability-scan.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Integration Tests**: ${{ needs.integration-test.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### PostgreSQL Version:" >> $GITHUB_STEP_SUMMARY
-          echo "- PostgreSQL 16 (latest Alpine image)" >> $GITHUB_STEP_SUMMARY
+          echo "### Database Version:" >> $GITHUB_STEP_SUMMARY
+          echo "- EDB Postgres Advanced Server (EPAS) 16.13" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Workflow completed at $(date -u)" >> $GITHUB_STEP_SUMMARY
 
