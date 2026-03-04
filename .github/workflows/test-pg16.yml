@@ -1,4 +1,4 @@
-name: PostgreSQL 16.13 Testing Suite
+name: PostgreSQL 16 Testing Suite
 
 on:
   push:
