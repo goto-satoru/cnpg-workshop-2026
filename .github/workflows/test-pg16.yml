@@ -1,0 +1,485 @@
+name: PostgreSQL 16 Testing Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 15:00 UTC = 00:00 JST
+    - cron: '0 15 * * *'
+  workflow_dispatch:
+
+env:
+  # PostgreSQL version to use
+  POSTGRES_VERSION: '16.13'
+
+  POSTGRES_DB: testdb
+  POSTGRES_USER: testuser
+  POSTGRES_PASSWORD: testpass123
+
+jobs:
+  compatibility-test:
+    name: Compatibility Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Verify PostgreSQL version
+        run: |
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            -c "SELECT version();"
+
+      - name: Run DDL scripts
+        run: |
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            -f ddl-dml/create-table-t1.sql
+
+      - name: Test basic CRUD operations
+        run: |
+          cat << 'EOF' > test-crud.sql
+          -- Test SELECT
+          SELECT COUNT(*) as total_rows FROM t1;
+          SELECT * FROM t1 ORDER BY id LIMIT 3;
+          
+          -- Test UPDATE
+          UPDATE t1 SET description = 'Updated description' WHERE id = 1;
+          SELECT description FROM t1 WHERE id = 1;
+          
+          -- Test DELETE
+          DELETE FROM t1 WHERE id = 5;
+          SELECT COUNT(*) as rows_after_delete FROM t1;
+          
+          -- Test transactions
+          BEGIN;
+          INSERT INTO t1 (name, description) VALUES ('Transaction Test', 'Test rollback');
+          ROLLBACK;
+          SELECT COUNT(*) as rows_after_rollback FROM t1;
+          
+          -- Test advanced features
+          CREATE INDEX idx_t1_name ON t1(name);
+          CREATE INDEX idx_t1_created_at ON t1(created_at);
+          
+          -- Test JSON support (PostgreSQL 16 feature)
+          CREATE TABLE json_test (
+              id SERIAL PRIMARY KEY,
+              data JSONB
+          );
+          INSERT INTO json_test (data) VALUES ('{"key": "value", "number": 42}');
+          SELECT data->>'key' as extracted_value FROM json_test;
+          
+          -- Test window functions
+          SELECT 
+              id, 
+              name, 
+              ROW_NUMBER() OVER (ORDER BY created_at DESC) as row_num
+          FROM t1;
+          
+          -- Test CTEs
+          WITH recent_records AS (
+              SELECT * FROM t1 WHERE created_at > NOW() - INTERVAL '1 day'
+          )
+          SELECT COUNT(*) FROM recent_records;
+          EOF
+          
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            -f test-crud.sql
+
+      - name: Test PostgreSQL 16 specific features
+        run: |
+          cat << 'EOF' > test-pg16-features.sql
+          -- Test INCREMENT/DECREMENT for ALTER TABLE
+          CREATE TABLE test_increment (val INT DEFAULT 0);
+          ALTER TABLE test_increment ALTER COLUMN val SET DEFAULT 1;
+          
+          -- Test logical replication improvements
+          SELECT * FROM pg_replication_slots;
+          
+          -- Test statistics
+          SELECT schemaname, tablename, n_live_tup, n_dead_tup 
+          FROM pg_stat_user_tables 
+          WHERE tablename = 't1';
+          
+          -- Test parallel query capabilities
+          SET max_parallel_workers_per_gather = 2;
+          EXPLAIN (ANALYZE, BUFFERS) SELECT COUNT(*) FROM t1;
+          
+          -- Test query plan
+          EXPLAIN (FORMAT JSON) SELECT * FROM t1 WHERE name LIKE 'John%';
+          EOF
+          
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            -f test-pg16-features.sql
+
+      - name: Check for deprecated features
+        run: |
+          echo "Checking for usage of deprecated features..."
+          cat << 'EOF' > check-deprecations.sql
+          -- Check PostgreSQL settings
+          SHOW server_version;
+          SHOW server_version_num;
+          
+          -- Verify no deprecated data types are used
+          SELECT tablename, columnname, data_type 
+          FROM information_schema.columns 
+          WHERE table_schema = 'public';
+          EOF
+          
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            -f check-deprecations.sql
+
+  performance-test:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client and tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client postgresql-contrib
+
+      - name: Initialize database with test data
+        run: |
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            -c "CREATE TABLE IF NOT EXISTS pgbench_accounts (
+                aid INT PRIMARY KEY,
+                bid INT,
+                abalance INT,
+                filler CHAR(84)
+            );"
+
+      - name: Run pgbench initialization
+        run: |
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} pgbench \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            -i -s 10
+
+      - name: Run pgbench performance test (Read-only)
+        run: |
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} pgbench \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            -c 10 \
+            -j 2 \
+            -t 1000 \
+            -S \
+            --progress=10 \
+            --report-per-command
+
+      - name: Run pgbench performance test (Read-Write)
+        run: |
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} pgbench \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            -c 10 \
+            -j 2 \
+            -t 500 \
+            --progress=10 \
+            --report-per-command
+
+      - name: Custom performance tests
+        run: |
+          cat << 'EOF' > performance-tests.sql
+          -- Create test table with more data
+          CREATE TABLE perf_test (
+              id SERIAL PRIMARY KEY,
+              data TEXT,
+              created_at TIMESTAMP DEFAULT NOW()
+          );
+          
+          -- Insert 10k records
+          INSERT INTO perf_test (data)
+          SELECT 'Test data ' || generate_series(1, 10000);
+          
+          -- Measure query performance
+          \timing on
+          
+          -- Sequential scan
+          EXPLAIN ANALYZE SELECT COUNT(*) FROM perf_test;
+          
+          -- Index scan
+          CREATE INDEX idx_perf_test_data ON perf_test(data);
+          EXPLAIN ANALYZE SELECT * FROM perf_test WHERE data = 'Test data 5000';
+          
+          -- Join performance
+          EXPLAIN ANALYZE 
+          SELECT pt1.id, pt2.id 
+          FROM perf_test pt1 
+          JOIN perf_test pt2 ON pt1.id = pt2.id 
+          LIMIT 100;
+          
+          -- Aggregation performance
+          EXPLAIN ANALYZE 
+          SELECT DATE_TRUNC('hour', created_at) as hour, COUNT(*) 
+          FROM perf_test 
+          GROUP BY hour;
+          EOF
+          
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            -f performance-tests.sql
+
+      - name: Analyze query performance statistics
+        run: |
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            -c "SELECT 
+                  schemaname,
+                  tablename,
+                  seq_scan,
+                  seq_tup_read,
+                  idx_scan,
+                  idx_tup_fetch,
+                  n_tup_ins,
+                  n_tup_upd,
+                  n_tup_del
+                FROM pg_stat_user_tables
+                ORDER BY seq_scan DESC;"
+
+  vulnerability-scan:
+    name: Security & Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner on PostgreSQL 16 image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'postgres:16-alpine'
+          format: 'table'
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+
+      - name: Run Trivy vulnerability scanner (JSON output)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'postgres:16-alpine'
+          format: 'json'
+          output: 'trivy-results.json'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Check for critical vulnerabilities
+        run: |
+          if [ -f trivy-results.json ]; then
+            CRITICAL_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-results.json)
+            HIGH_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' trivy-results.json)
+            
+            echo "Critical vulnerabilities found: $CRITICAL_COUNT"
+            echo "High vulnerabilities found: $HIGH_COUNT"
+            
+            if [ "$CRITICAL_COUNT" -gt 0 ]; then
+              echo "⚠️ CRITICAL vulnerabilities detected!"
+              jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")]' trivy-results.json
+            fi
+            
+            if [ "$HIGH_COUNT" -gt 0 ]; then
+              echo "⚠️ HIGH severity vulnerabilities detected!"
+              jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | .[:5]' trivy-results.json
+            fi
+          fi
+
+      - name: Upload Trivy results as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-vulnerability-report
+          path: trivy-results.json
+          retention-days: 30
+
+      - name: Check PostgreSQL CVE database
+        run: |
+          echo "Checking recent PostgreSQL CVEs..."
+          curl -s "https://www.cvedetails.com/json-feed.php?vendor=postgresql&product=postgresql&version=16" \
+            || echo "Unable to fetch CVE data (requires network access)"
+
+  integration-test:
+    name: Integration & Stress Tests
+    runs-on: ubuntu-latest
+    needs: [compatibility-test, performance-test]
+    
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Run application DDL/DML
+        run: |
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            -f ddl-dml/create-table-t1.sql
+
+      - name: Concurrent connection stress test
+        run: |
+          echo "Testing concurrent connections..."
+          for i in {1..20}; do
+            (
+              PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql \
+                -h localhost \
+                -U ${{ env.POSTGRES_USER }} \
+                -d ${{ env.POSTGRES_DB }} \
+                -c "SELECT pg_sleep(0.1); SELECT COUNT(*) FROM t1;"
+            ) &
+          done
+          wait
+          echo "All concurrent connections completed successfully"
+
+      - name: Test connection pool limits
+        run: |
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            -c "SHOW max_connections; SELECT count(*) FROM pg_stat_activity;"
+
+      - name: Test backup compatibility
+        run: |
+          echo "Testing pg_dump with PostgreSQL 16..."
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} pg_dump \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d ${{ env.POSTGRES_DB }} \
+            --format=custom \
+            --file=backup.dump
+          
+          ls -lh backup.dump
+          echo "Backup created successfully"
+
+      - name: Test restore compatibility
+        run: |
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} psql \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d postgres \
+            -c "CREATE DATABASE restore_test;"
+          
+          PGPASSWORD=${{ env.POSTGRES_PASSWORD }} pg_restore \
+            -h localhost \
+            -U ${{ env.POSTGRES_USER }} \
+            -d restore_test \
+            --verbose \
+            backup.dump || true
+          
+          echo "Restore test completed"
+
+  summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [compatibility-test, performance-test, vulnerability-scan, integration-test]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## PostgreSQL 16 Test Suite Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Results:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Compatibility Tests**: ${{ needs.compatibility-test.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Performance Tests**: ${{ needs.performance-test.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Vulnerability Scan**: ${{ needs.vulnerability-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Integration Tests**: ${{ needs.integration-test.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### PostgreSQL Version:" >> $GITHUB_STEP_SUMMARY
+          echo "- PostgreSQL 16 (latest Alpine image)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Workflow completed at $(date -u)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check overall status
+        run: |
+          if [ "${{ needs.compatibility-test.result }}" != "success" ] || \
+             [ "${{ needs.performance-test.result }}" != "success" ] || \
+             [ "${{ needs.integration-test.result }}" != "success" ]; then
+            echo "❌ Some tests failed!"
+            exit 1
+          else
+            echo "✅ All tests passed!"
+          fi

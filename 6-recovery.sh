@@ -6,7 +6,7 @@ SOURCE_CLUSTER_NAME="epas16"
 RESTORE_CLUSTER_NAME="epas16-restored"
 NAMESPACE="edb"
 SECRET_NAME="backup-storage-creds"
-IMAGE_TAG="docker.enterprisedb.com/k8s/edb-postgres-advanced:16.11"
+EPAS_IMAGE="docker.enterprisedb.com/k8s/edb-postgres-advanced:16.13"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -119,7 +119,7 @@ metadata:
   namespace: $NAMESPACE
 spec:
   instances: 3
-  imageName: $IMAGE_TAG
+  imageName: $EPAS_IMAGE
   imagePullSecrets:
   - name: edb-pull-secret
   storage:
