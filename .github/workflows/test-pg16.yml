@@ -12,7 +12,6 @@ on:
 
 env:
   # PostgreSQL version to use
-  POSTGRES_VERSION: '16.13'
   POSTGRES_IMAGE: 'postgres:16.13-alpine'
   
   POSTGRES_DB: testdb
