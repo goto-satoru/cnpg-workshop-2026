@@ -12,8 +12,8 @@ metadata:
 type: Opaque
 stringData:
   ACCESS_KEY_ID: minio_admin
-  SECRET_ACCESS_KEY: minio_admin_0227
-  AWS_REGION: "us-east-1"
+  SECRET_ACCESS_KEY: minio_passwd_1613
+  AWS_REGION: us-east-1
 ---
 apiVersion: postgresql.k8s.enterprisedb.io/v1
 kind: Cluster
@@ -22,11 +22,16 @@ metadata:
   namespace: edb
 spec:
   instances: 3
+  #                                                            !!!!! the latest
   imageName: docker.enterprisedb.com/k8s/edb-postgres-advanced:16.13
   imagePullSecrets:
   - name: edb-pull-secret
   storage:
     size: 1Gi
+
+  # Primary update strategy - supervised (default) or unsupervised
+  primaryUpdateStrategy: supervised
+  #---------------------------------------------------------------
 
   # Backup configuration - MinIO
   backup:
