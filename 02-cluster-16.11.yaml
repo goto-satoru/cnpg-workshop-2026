@@ -12,7 +12,7 @@ metadata:
 type: Opaque
 stringData:
   ACCESS_KEY_ID: minio_admin
-  SECRET_ACCESS_KEY: minio_passwd_1613
+  SECRET_ACCESS_KEY: 02-cluster-16.11.yaml
   AWS_REGION: us-east-1
 ---
 apiVersion: postgresql.k8s.enterprisedb.io/v1

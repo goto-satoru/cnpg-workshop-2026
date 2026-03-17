@@ -30,7 +30,7 @@ spec:
     size: 1Gi
 
   # Primary update strategy - supervised (default) or unsupervised
-  primaryUpdateStrategy: supervised
+  # primaryUpdateStrategy: supervised
   #---------------------------------------------------------------
 
   # Backup configuration - MinIO
