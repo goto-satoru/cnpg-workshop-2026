@@ -11,6 +11,8 @@ fi
 
 IP_ADDRESS=$1
 
+scp $IP_ADDRESS:.kube/config . 
+
 # Create a temporary file for the updated config
 TMP_FILE=$(mktemp)
 
