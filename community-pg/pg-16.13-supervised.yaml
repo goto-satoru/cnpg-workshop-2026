@@ -1,0 +1,15 @@
+---
+apiVersion: postgresql.k8s.enterprisedb.io/v1
+kind: Cluster
+metadata:
+  name: pg16
+  namespace: edb
+spec:
+  instances: 3
+  #                                            !!!!! the latest
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.13
+  storage:
+    size: 1Gi
+
+  # Primary update strategy - supervised (default) or unsupervised
+  primaryUpdateStrategy: supervised

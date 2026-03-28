@@ -12,7 +12,7 @@ metadata:
 type: Opaque
 stringData:
   ACCESS_KEY_ID: minio_admin
-  SECRET_ACCESS_KEY: 02-cluster-16.11.yaml
+  SECRET_ACCESS_KEY: minio_passwd_1613
   AWS_REGION: us-east-1
 ---
 apiVersion: postgresql.k8s.enterprisedb.io/v1
@@ -28,8 +28,6 @@ spec:
   storage:
     size: 1Gi
 
-  # Primary update strategy - supervised (default) or unsupervised
-  primaryUpdateStrategy: supervised
   #---------------------------------------------------------------
   # Backup configuration - MinIO
   backup:

@@ -1,11 +1,19 @@
 #!/bin/sh
 # CNPG Cluster hands-on setup for AlmaLinux 9 / Rocky Linux 9
 
+echo "CNPG Cluster hands-on lab setup for AlmaLinux 9 / Rocky Linux 9"
+echo "requirements:"
+echo "  - VM with AlmaLinux 9 / Rocky Linux 9"
+echo "  - 8GB RAM, 2 vCPU, 20GB disk"
+echo "  - Internet access for package installation"
+echo ""
+
 sudo dnf update -y
-sudo dnf install -y git wget curl bash-completion
+sudo dnf install -y git wget curl bash-completion openssh-server
 
 # Install Docker engine and CLI
-sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo dnf install 'dnf-command(config-manager)'
+sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
 sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo systemctl enable --now docker
 sudo usermod -aG docker $USER
@@ -23,8 +31,10 @@ sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
 # install kubectl-cnp plugin
 # https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/kubectl-plugin/#status
-curl -L https://github.com/EnterpriseDB/kubectl-cnp/releases/download/v1.28.1/kubectl-cnp_1.28.1_linux_x86_64.rpm \
-  --output kube-plugin.rpm
+curl -L https://github.com/EnterpriseDB/kubectl-cnp/releases/download/v1.28.1/kubectl-cnp_1.28.1_linux_x86_64.rpm --output kube-plugin.rpm
+# for arm64
+#curl -L https://github.com/EnterpriseDB/kubectl-cnp/releases/download/v1.28.1/kubectl-cnp_1.28.1_linux_arm64.rpm --output kube-plugin.rpm
+
 sudo yum --disablerepo=* localinstall kube-plugin.rpm
 
 curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.27.0/kind-linux-amd64
