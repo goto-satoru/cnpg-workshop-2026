@@ -20,7 +20,7 @@ metadata:
   namespace: edb
 spec:
   # Primary update strategy - unsupervised (default) or supervised https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/installation_upgrade/
-  primaryUpdateStrategy: supervised
+  primaryUpdateStrategy: unsupervised
   instances: 3
   #                                                            !!!!! the latest
   imageName: docker.enterprisedb.com/k8s/edb-postgres-advanced:16.13
