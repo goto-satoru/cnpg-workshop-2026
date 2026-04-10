@@ -22,6 +22,7 @@ sh install.sh
 - [MinIO](https://www.min.io/) を対象とした Barman Object Store バックアップの設定
 - スケジュールバックアップと手動バックアップの実行
 - MinIO 上のバックアップを用いたリカバリ
+- EPAS16.11 から 16.13 へのローリングアップデート
 
 
 ### Helper Scripts
@@ -37,15 +38,15 @@ sh install.sh
 
 | ファイル/スクリプト | 説明 |
 |---|---|
-| `04-scheduled-backup.sh` | スケジュールバックアップの適用 |
-| `05-backup.sh` | タイムスタンプ付き手動バックアップの実行 |
-| `06-recovery.sh` | バックアップからのリカバリ実行 |
+| `backup/04-scheduled-backup.sh` | スケジュールバックアップの適用 |
+| `backup/05-backup.sh` | タイムスタンプ付き手動バックアップの実行 |
+| `backup/06-recovery.sh` | バックアップからのリカバリ実行 |
 
 ### ローリングアップデート関連
 
 | ファイル/スクリプト | 説明 |
 |---|---|
-| `rolling-update/21-rolling-update-16.13.sh` | EPAS を 16.13 へローリングアップデート実行 |
+| `21-rolling-update-16.13.sh` | EPAS を 16.13 へローリングアップデート実行 |
 | `rolling-update/22-promote-replica.sh` | レプリカをプライマリに昇格 |
 
 ### クリーンアップスクリプト
@@ -112,7 +113,7 @@ cp dotenv-sample .env
 NS_OPERATOR=postgresql-operator-system
 NS_EPAS=edb
 SECRET_NAME=edb-pull-secret
-CNPG_VERSION=1.28.1
+CNPG_VERSION=1.28.2
 
 CLOUDSMITH=docker.enterprisedb.com
 CS_USER=k8s
