@@ -15,7 +15,7 @@ SELECT
 	'Sample record ' || gs,
 	CURRENT_TIMESTAMP - (gs || ' seconds')::INTERVAL,
 	CURRENT_TIMESTAMP - (gs || ' seconds')::INTERVAL
-FROM generate_series(1, 10000000) AS gs;
+FROM generate_series(1, 1000000) AS gs;
 
 SELECT COUNT(*) AS total_rows FROM t1;
 
