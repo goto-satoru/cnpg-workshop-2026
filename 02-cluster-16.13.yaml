@@ -22,9 +22,18 @@ metadata:
   namespace: edb
 spec:
   instances: 3
-  imageName: docker.enterprisedb.com/k8s/edb-postgres-advanced:16.11
+  imageName: docker.enterprisedb.com/k8s/edb-postgres-advanced:16.13
   imagePullSecrets:
   - name: edb-pull-secret
+  postgresql:
+    parameters:
+      # to mimic 'replication slot cannot be advanced' Error 
+      max_slot_wal_keep_size: "8MB"
+      wal_keep_size: "0"
+      # to frequently trigger checkpoints and promote WAL recycling
+      min_wal_size: "8MB"
+      max_wal_size: "16MB"
+      checkpoint_timeout: "30s"
   storage:
     size: 1Gi
 

@@ -35,3 +35,5 @@ echo ""
 
 export KUBECONFIG=$PWD/config
 kubectl get no
+
+cp -pf config ~/.kube/

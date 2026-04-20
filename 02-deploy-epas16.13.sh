@@ -4,7 +4,7 @@ set -a
 source ./.env
 set +a
 
-echo "Deploying EPAS 16.11 cluster..."
+echo "Deploying EPAS 16.13 cluster..."
 
 kubectl create secret docker-registry $SECRET_NAME \
  --docker-server=$CLOUDSMITH \
@@ -12,7 +12,7 @@ kubectl create secret docker-registry $SECRET_NAME \
  --docker-password=$EDB_SUBSCRIPTION_TOKEN \
  -n $NS_EPAS
 
-kubectl apply -f 02-cluster-16.11.yaml
+kubectl apply -f 02-cluster-16.13.yaml
 
 echo "" 
 echo "Run following to monitor the cluster creation process:"

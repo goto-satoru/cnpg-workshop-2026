@@ -26,6 +26,7 @@ kubectl create secret docker-registry $SECRET_NAME \
 echo "Verifying secret..."
 kubectl get secret $SECRET_NAME -n $NS_OPERATOR
 
+echo "-------------------------------------------------------------------------"
 echo "Applying CNPG-C manifest $CNPG_VERSION..."
 kubectl apply --server-side -f https://get.enterprisedb.io/pg4k/pg4k-$CNPG_VERSION.yaml
 
