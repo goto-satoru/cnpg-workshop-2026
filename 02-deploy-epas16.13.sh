@@ -12,6 +12,7 @@ kubectl create secret docker-registry $SECRET_NAME \
  --docker-password=$EDB_SUBSCRIPTION_TOKEN \
  -n $NS_EPAS
 
+# kubectl apply -f 02-cluster-16.13-wo-bak.yaml
 kubectl apply -f 02-cluster-16.13.yaml
 
 echo "" 

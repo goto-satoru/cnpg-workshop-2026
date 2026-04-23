@@ -1,0 +1,15 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: cluster-example
+spec:
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.0-system-trixie
+
+  affinity:
+    enablePodAntiAffinity: true # Default value
+    topologyKey: kubernetes.io/hostname # Default value
+    podAntiAffinityType: preferred # Default value
+
+  storage:
+    size: 1Gi

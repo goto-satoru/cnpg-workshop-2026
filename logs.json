@@ -1,1 +1,20 @@
-{"level":"info","ts":"2026-04-20T04:15:06.929840875Z","logger":"postgres","msg":"record","logging_pod":"epas16-2","record":{"log_time":"2026-04-20 04:15:06.929 UTC","process_id":"1271","session_id":"69e5a84a.4f7","session_line_num":"2","session_start_time":"2026-04-20 04:15:06 UTC","transaction_id":"0","error_severity":"FATAL","sql_state_code":"08P01","message":"could not receive data from WAL stream: ERROR:  requested WAL segment 000000030000000000000036 has already been removed","backend_type":"walreceiver","query_id":"0"}}
+{
+    "level": "info",
+    "ts": "2026-04-20T04:15:06.929840875Z",
+    "logger": "postgres",
+    "msg": "record",
+    "logging_pod": "epas16-2",
+    "record": {
+        "log_time": "2026-04-20 04:15:06.929 UTC",
+        "process_id": "1271",
+        "session_id": "69e5a84a.4f7",
+        "session_line_num": "2",
+        "session_start_time": "2026-04-20 04:15:06 UTC",
+        "transaction_id": "0",
+        "error_severity": "FATAL",
+        "sql_state_code": "08P01",
+        "message": "could not receive data from WAL stream: ERROR:  requested WAL segment 000000030000000000000036 has already been removed",
+        "backend_type": "walreceiver",
+        "query_id": "0"
+    }
+}

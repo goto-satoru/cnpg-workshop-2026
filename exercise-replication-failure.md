@@ -1,6 +1,19 @@
+# test replication slot error
 
+## get Cluster status
 
+```
+kubectl cnp status epas16
+...
+Instances status
+Name      Current LSN  Replication role  Status  QoS         Manager Version  Node
+----      -----------  ----------------  ------  ---         ---------------  ----
+epas16-1  0/8000060    Primary           OK      BestEffort  1.28.2           my-k8s-worker2
+epas16-2  0/8000060    Standby (async)   OK      BestEffort  1.28.2           my-k8s-worker
+epas16-3  0/8000060    Standby (async)   OK      BestEffort  1.28.2           my-k8s-worker3
+```
 
+or w/o cnp plugin:
 
 ```
  k get cluster
@@ -16,33 +29,22 @@ epas16-2                 1/1     Running   0          12m     10.244.2.5   my-k8
 epas16-3                 1/1     Running   0          11m     10.244.1.6   my-k8s-worker2   <none>           <none>
 ```
 
-or 
-
-```
-kubectl cnp status epas16
-...
-Instances status
-Name      Current LSN  Replication role  Status  QoS         Manager Version  Node
-----      -----------  ----------------  ------  ---         ---------------  ----
-epas16-1  0/8000060    Primary           OK      BestEffort  1.28.2           my-k8s-worker2
-epas16-2  0/8000060    Standby (async)   OK      BestEffort  1.28.2           my-k8s-worker
-epas16-3  0/8000060    Standby (async)   OK      BestEffort  1.28.2           my-k8s-worker3
-```
-
-
 the Primary pod is running on ``my-k8s-worker2`` node.
 
-### drain ``my-k8s-worker2`` node
+## drain ``my-k8s-worker2`` node
 
 ```
 kubectl drain my-k8s-worker2 --ignore-daemonsets --delete-emptydir-data
 ```
 
-### ingest sample data to EPAS16 cluster
+## ingest sample data to the EPAS16 cluster
+
+in order to advance WAL log
 
 ```
-k cnp psql epas16
+kubectl cnp psql epas16
 ```
+
 ingest 1,000,000 records to a sample table.
 
 ```sql
@@ -75,7 +77,7 @@ SELECT
 FROM wal_baseline;
 ```
 
-### recover(uncordon) my-k8s-worker2
+## recover(uncordon) my-k8s-worker2
 
 ```
 kubectl uncordon my-k8s-worker2
@@ -85,8 +87,29 @@ pod log
 
 ```
 kubectl logs epas16-1 -n edb -c postgres
+```
 
-{"level":"info","ts":"2026-04-20T03:45:40.188251348Z","logger":"postgres","msg":"record","logging_pod":"epas16-1","record":{"log_time":"2026-04-20 03:45:40.188 UTC","process_id":"2427","session_id":"69e5a164.97b","session_line_num":"2","session_start_time":"2026-04-20 03:45:40 UTC","transaction_id":"0","error_severity":"FATAL","sql_state_code":"08P01","message":"could not receive data from WAL stream: ERROR:  requested WAL segment 000000020000000000000009 has already been removed","backend_type":"walreceiver","query_id":"0"}}
+```json
+{
+    "level": "info",
+    "ts": "2026-04-20T04:15:06.929840875Z",
+    "logger": "postgres",
+    "msg": "record",
+    "logging_pod": "epas16-2",
+    "record": {
+        "log_time": "2026-04-20 04:15:06.929 UTC",
+        "process_id": "1271",
+        "session_id": "69e5a84a.4f7",
+        "session_line_num": "2",
+        "session_start_time": "2026-04-20 04:15:06 UTC",
+        "transaction_id": "0",
+        "error_severity": "FATAL",
+        "sql_state_code": "08P01",
+        "message": "could not receive data from WAL stream: ERROR:  requested WAL segment 000000030000000000000036 has already been removed",
+        "backend_type": "walreceiver",
+        "query_id": "0"
+    }
+}
 ```
 
 pg_replication_slots
@@ -99,4 +122,3 @@ postgres=# SELECT slot_name, slot_type, active, restart_lsn, wal_status FROM pg_
  _cnp_epas16_1 | physical  | f      |             | lost
 (2 rows)
 ```
-
