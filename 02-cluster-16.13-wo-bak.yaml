@@ -11,10 +11,18 @@ metadata:
   namespace: edb
 spec:
   instances: 3
-  imageName: docker.enterprisedb.com/k8s/edb-postgres-advanced:16.13
+  imageName: docker.enterprisedb.com/k8s/edb-postgres-advanced:16.11
   imagePullSecrets:
   - name: edb-pull-secret
   postgresql:
+    # --- Password masking in logs ---
+    # edb_filter_log masks passwords in ALTER USER/CREATE USER statements.
+    # CNPG merges these with its own required libraries. Requires rolling restart.
+    shared_preload_libraries:
+    - "$libdir/dbms_pipe"
+    - "$libdir/edb_gen"
+    - "$libdir/dbms_aq"
+    - "$libdir/edb_filter_log"
     parameters:
       max_slot_wal_keep_size: "64MB"
       wal_keep_size: "0"
@@ -22,5 +30,24 @@ spec:
       max_wal_size: "64MB"
       # to frequently trigger checkpoints and promote WAL recycling
       checkpoint_timeout: "30s"
+      # --- Password masking in logs ---
+      edb_filter_log.redact_password_commands: "on"
+      # --- Minimize sensitive data in error logs ---
+      # terse: suppresses DETAIL, HINT, QUERY, CONTEXT in server logs
+      log_error_verbosity: "terse"
+      # --- EDB Audit logging ---
+      # edb_audit output format: csv or xml (empty = disabled)
+      # edb_audit: "csv"
+      # edb_audit_statement: "ddl,error"
+      # edb_audit_connect: "failed"
+      # edb_audit_disconnect: "none"
+      # edb_audit_destination: "file"
   storage:
     size: 1Gi
+  # topologySpreadConstraints:
+  # - maxSkew: 1
+  #   topologyKey: kubernetes.io/hostname
+  #   whenUnsatisfiable: DoNotSchedule
+  #   labelSelector:
+  #     matchLabels:
+  #       cnpg.io/cluster: epas16

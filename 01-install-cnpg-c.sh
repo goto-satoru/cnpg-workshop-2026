@@ -36,11 +36,11 @@ kubectl rollout status deployment/postgresql-operator-controller-manager -n $NS_
 echo "CloudNativePG operator installation complete!"
 kubectl get pods -n $NS_OPERATOR
 
-./minio/install-minio.sh
+# ./minio/install-minio.sh
 
-echo ""
-echo "CNPG Cluster and MinIO setup complete!"
-echo "---"
-echo "Run following to monitor the CNPG Cluster deployment:"
-echo "kubectl rollout status deployment postgresql-operator-controller-manager -n $NS_OPERATOR"
-echo "" 
+# echo ""
+# echo "CNPG Cluster and MinIO setup complete!"
+# echo "---"
+# echo "Run following to monitor the CNPG Cluster deployment:"
+# echo "kubectl rollout status deployment postgresql-operator-controller-manager -n $NS_OPERATOR"
+# echo "" 
