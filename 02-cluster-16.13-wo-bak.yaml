@@ -9,46 +9,21 @@ kind: Cluster
 metadata:
   name: epas16
   namespace: edb
+  annotations:
+    alpha.k8s.enterprisedb.io/unrecoverable: "true"
 spec:
   instances: 3
   imageName: docker.enterprisedb.com/k8s/edb-postgres-advanced:16.13
   imagePullSecrets:
   - name: edb-pull-secret
-  postgresql:
-    shared_preload_libraries:
-    - "$libdir/dbms_pipe"
-    - "$libdir/edb_gen"
-    - "$libdir/dbms_aq"
-    - "$libdir/edb_filter_log"
-    parameters:
-      # max_slot_wal_keep_size: "64MB"
-      # wal_keep_size: "0"
-      # min_wal_size: "32MB"
-      # max_wal_size: "64MB"
-      # to frequently trigger checkpoints and promote WAL recycling
-      # checkpoint_timeout: "30s"
-
-      edb_audit_statement: "all"
-      log_statement: "all"
-      log_connections: "on"
-      log_disconnections: "on"
-      log_duration: "on"
-      log_min_duration_statement: "0"
-      log_lock_waits: "on"
-      log_checkpoints: "on"
-      log_autovacuum_min_duration: "0"
-      log_temp_files: "0"
-      log_replication_commands: "on"
-      log_error_verbosity: "verbose"
-      log_line_prefix: "%m [%p] db=%d,user=%u,app=%a,client=%h "
-      edb_filter_log.redact_password_commands: "true"
-
   storage:
     size: 1Gi
-  # topologySpreadConstraints:
-  # - maxSkew: 1
-  #   topologyKey: kubernetes.io/hostname
-  #   whenUnsatisfiable: DoNotSchedule
-  #   labelSelector:
-  #     matchLabels:
-  #       cnpg.io/cluster: epas16
+  postgresql:
+    parameters:
+      # to mimic 'replication slot cannot be advanced' Error 
+      max_slot_wal_keep_size: "64MB"
+      wal_keep_size: "0"
+      # to frequently trigger checkpoints and promote WAL recycling
+      min_wal_size: "32MB"
+      max_wal_size: "64MB"
+      checkpoint_timeout: "30s"
