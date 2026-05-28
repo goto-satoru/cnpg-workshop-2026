@@ -1,0 +1,11 @@
+---
+apiVersion: postgresql.k8s.enterprisedb.io/v1
+kind: Cluster
+metadata:
+  name: pg16
+  namespace: edb
+spec:
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.11
+  storage:
+    size: 1Gi

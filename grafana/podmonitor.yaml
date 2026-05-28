@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: epas16-manual
+  namespace: edb
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      k8s.enterprisedb.io/cluster: epas16
+  podMetricsEndpoints:
+  - port: metrics
+    path: /metrics
+    interval: 10s
+    relabelings:
+    - sourceLabels: [ __meta_kubernetes_namespace ]
+      targetLabel: namespace
+    - sourceLabels: [ __meta_kubernetes_pod_name ]
+      targetLabel: pod

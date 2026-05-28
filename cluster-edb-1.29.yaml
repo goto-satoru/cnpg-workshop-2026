@@ -1,0 +1,15 @@
+apiVersion: postgresql.k8s.enterprisedb.io/v1
+kind: Cluster
+metadata:
+  name: cluster-example
+spec:
+  instances: 3
+  imageName: docker.enterprisedb.com/k8s/postgresql:18.3-standard-ubi9
+
+  affinity:
+    enablePodAntiAffinity: true # Default value
+    topologyKey: kubernetes.io/hostname # Default value
+    podAntiAffinityType: preferred # Default value
+
+  storage:
+    size: 1Gi
