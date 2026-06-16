@@ -5,6 +5,16 @@ set -e
 # Treat unset variables as an error
 set -u
 
+CNPG_NAMESPACE=postgresql-operator-system
+EPAS_NAMESPACE=edb 
+CLUSTER_CRD_BASE=postgresql.k8s.enterprisedb.io
+
+# Check if CNPG_NAMESPACE is set
+if [ -z "${CNPG_NAMESPACE}" ]; then
+    echo "Error: CNPG_NAMESPACE is not set." >&2
+    exit 1
+fi
+
 # Define output directory with a timestamp
 TIMESTAMP=$(date +"%y%m%d_%H%M")
 OUTPUT_DIR="./cnpg_report_${TIMESTAMP}"
@@ -71,19 +81,15 @@ echo "[1/7] Gathering Version Info (including CNPG/EPAS)..."
     ${CLI} version
     printf '\n=== OpenShift Cluster Version (if applicable) ===\n'
     ${CLI} get clusterversion 2>/dev/null || echo "Not an OpenShift cluster or insufficient permissions."
-    printf '\n=== Infrastructure Details ===\n'
-    ${CLI} get infrastructure cluster 2>/dev/null || echo "Infrastructure CRD not available."
 
     printf '\n=== CloudNativePG Operator Version ===\n'
     CNPG_IMAGE=""
 
+
     # Prefer cnpg-system and then postgresql-operator-system.
-    if ${CLI} -n cnpg-system get deploy cnpg-controller-manager &>/dev/null; then
-        CNPG_IMAGE="$(${CLI} -n cnpg-system get deploy cnpg-controller-manager -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)"
-        echo "namespace=cnpg-system"
-    elif ${CLI} -n postgresql-operator-system get deploy cnpg-controller-manager &>/dev/null; then
-        CNPG_IMAGE="$(${CLI} -n postgresql-operator-system get deploy cnpg-controller-manager -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)"
-        echo "namespace=postgresql-operator-system"
+    if ${CLI} -n $CNPG_NAMESPACE get deploy postgresql-operator-controller-manager &>/dev/null; then
+        CNPG_IMAGE="$(${CLI} -n $CNPG_NAMESPACE get deploy postgresql-operator-controller-manager -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)"
+        echo "namespace=$CNPG_NAMESPACE"
     else
         # Last resort: search all deployment images for CNPG operator image name.
         CNPG_IMAGE="$(${CLI} get deploy -A -o jsonpath='{range .items[*]}{.spec.template.spec.containers[*].image}{"\n"}{end}' 2>/dev/null | grep -m1 'cloudnative-pg/cloudnative-pg' || true)"
@@ -97,13 +103,12 @@ echo "[1/7] Gathering Version Info (including CNPG/EPAS)..."
         echo "CloudNativePG operator image not found."
     fi
 
-    printf '\n=== EPAS / PostgreSQL Engine Version ===\n'
-    if ${CLI} get crd clusters.postgresql.cnpg.io &>/dev/null; then
+    printf '\n=== EPAS Version ===\n'
+    if ${CLI} get crd clusters.$CLUSTER_CRD_BASE &>/dev/null; then
         echo "CNPG Cluster resources:"
-        ${CLI} get clusters.postgresql.cnpg.io -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,IMAGE:.spec.imageName' 2>/dev/null || true
+        ${CLI} get cluster.$CLUSTER_CRD_BASE -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,IMAGE:.spec.imageName' 2>/dev/null || true
 
-        EPAS_IMAGES="$(${CLI} get clusters.postgresql.cnpg.io -A -o jsonpath='{range .items[*]}{.spec.imageName}{"\n"}{end}' 2>/dev/null | grep -Ei 'epas|enterprisedb|edb' || true)"
-        PG_IMAGES="$(${CLI} get clusters.postgresql.cnpg.io -A -o jsonpath='{range .items[*]}{.spec.imageName}{"\n"}{end}' 2>/dev/null || true)"
+        EPAS_IMAGES="$(${CLI} get cluster.$CLUSTER_CRD_BASE -A -o jsonpath='{range .items[*]}{.spec.imageName}{"\n"}{end}' 2>/dev/null | grep -Ei 'epas|enterprisedb|edb' || true)"
 
         if [ -n "${EPAS_IMAGES}" ]; then
             echo "Detected EPAS image(s):"
@@ -112,18 +117,11 @@ echo "[1/7] Gathering Version Info (including CNPG/EPAS)..."
                 echo "- image=${img}"
                 echo "  version=$(extract_image_version "${img}")"
             done
-        elif [ -n "${PG_IMAGES}" ]; then
-            echo "No EPAS image detected. Running PostgreSQL image(s):"
-            echo "${PG_IMAGES}" | while IFS= read -r img; do
-                [ -n "${img}" ] || continue
-                echo "- image=${img}"
-                echo "  version=$(extract_image_version "${img}")"
-            done
         else
             echo "No CNPG cluster images found."
         fi
     else
-        echo "CNPG Cluster CRD (clusters.postgresql.cnpg.io) not found."
+        echo "CNPG Cluster CRD (clusters.$CLUSTER_CRD_BASE) not found."
 
         # Fallback: inspect running pod images for EPAS/EDB names.
         EPAS_POD_IMAGES="$(${CLI} get pods -A -o jsonpath='{range .items[*]}{range .spec.containers[*]}{.image}{"\n"}{end}{end}' 2>/dev/null | grep -Ei 'epas|enterprisedb|edb' || true)"

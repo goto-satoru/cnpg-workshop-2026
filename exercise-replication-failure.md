@@ -3,7 +3,7 @@
 ## get Cluster status
 
 ```
-kubectl cnp status epas16
+oc cnp status epas16
 ...
 Instances status
 Name      Current LSN  Replication role  Status  QoS         Manager Version  Node
@@ -22,7 +22,7 @@ epas16   14m   3           3       Cluster in healthy state   epas16-2
 ```
 
 ```
-kubectl get po -o wide
+oc get po -o wide
 NAME                     READY   STATUS    RESTARTS   AGE     IP           NODE             NOMINATED NODE   READINESS GATES
 epas16-1                 1/1     Running   0          4m43s   10.244.3.6   my-k8s-worker3   <none>           <none>
 epas16-2                 1/1     Running   0          12m     10.244.2.5   my-k8s-worker    <none>           <none>
@@ -34,7 +34,7 @@ the Primary pod is running on ``my-k8s-worker2`` node.
 ## drain ``my-k8s-worker2`` node
 
 ```
-kubectl drain my-k8s-worker2 --ignore-daemonsets --delete-emptydir-data
+oc drain my-k8s-worker2 --ignore-daemonsets --delete-emptydir-data
 ```
 
 ## ingest sample data to the EPAS16 cluster
@@ -42,7 +42,7 @@ kubectl drain my-k8s-worker2 --ignore-daemonsets --delete-emptydir-data
 in order to advance WAL log
 
 ```
-kubectl cnp psql epas16
+oc cnp psql epas16
 ```
 
 ingest 1,000,000 records to a sample table.
@@ -80,13 +80,13 @@ FROM wal_baseline;
 ## recover(uncordon) my-k8s-worker2
 
 ```
-kubectl uncordon my-k8s-worker2
+oc uncordon my-k8s-worker2
 ```
 
 pod log 
 
 ```
-kubectl logs epas16-1 -n edb -c postgres
+oc logs epas16-1 -n edb -c postgres
 ```
 
 ```json
