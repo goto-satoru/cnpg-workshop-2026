@@ -186,8 +186,15 @@ echo "[5/7] Gathering Storage Resources (SC, PV, PVC)..."
     ${CLI} get pvc --all-namespaces -o wide
 } > "${OUTPUT_DIR}/storage.txt"
 
-# 6. EPAS/CNPG Cluster Status
-echo "[6/7] Gathering EPAS/CNPG Cluster Status..."
+# 6. Backups
+echo "[6/8] Gathering Backups..."
+{
+    echo "=== Backup List (oc get backup) ==="
+    ${CLI} get backup -A 2>/dev/null || ${CLI} get backups -A 2>/dev/null || echo "Backup resource not available in this cluster/context."
+} > "${OUTPUT_DIR}/backups.txt"
+
+# 7. EPAS/CNPG Cluster Status
+echo "[7/8] Gathering EPAS/CNPG Cluster Status..."
 {
     echo "=== EPAS/CNPG Cluster Status ==="
     if ${CLI} get cluster -A &>/dev/null; then
@@ -216,8 +223,8 @@ echo "[6/7] Gathering EPAS/CNPG Cluster Status..."
     fi
 } > "${OUTPUT_DIR}/epas_cluster_status.txt"
 
-# 7. General Cluster Runtime Health (Bonus snapshot)
-echo "[7/7] Gathering Node and Pod Status Snapshots..."
+# 8. General Cluster Runtime Health (Bonus snapshot)
+echo "[8/8] Gathering Node and Pod Status Snapshots..."
 {
     echo "=== Cluster Nodes ==="
     ${CLI} get nodes -o wide

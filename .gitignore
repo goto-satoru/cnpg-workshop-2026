@@ -39,3 +39,7 @@ build/
 # gitguardian
 .cache_ggshield/*
 .cache_ggshield
+
+*.tar.gz
+cnpg_report_2*
+
