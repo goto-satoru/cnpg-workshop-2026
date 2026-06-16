@@ -1,7 +1,7 @@
 ---
 repos:
   - repo: https://github.com/gitguardian/ggshield
-    rev: v1.46.0
+    rev: v1.51.0
     hooks:
       - id: ggshield
         language_version: python3
