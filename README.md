@@ -1,29 +1,24 @@
 
 # EDB CloudNativePG Cluster workshop 
 
-English version of this README is available as README-en.md
+KIND (Kubernetes in Docker) Cluster 上に CloudNativePG Cluster をインストール，[EDB Postgres Advanced Server(EPAS)](https://www.enterprisedb.com/docs/epas/) 16 DB クラスタ を Barman Object Store バックアップ機能付きでデプロイします。
 
-KIND (Kubernetes in Docker) を使用して CloudNativePG Cluster をインストール，[EDB Postgres Advanced Server(EPAS)](https://www.enterprisedb.com/docs/epas/) 16 DB クラスタ を Barman Object Store バックアップ機能付きでデプロイします。
-
-## 演習環境の構築(勉強会ではすでに構築済)
+## 演習環境の構築
 
 Alma Linux 9 / Rocky Linux 9 上で 以下のコマンドを実行
 
 ```bash
-cd workshop-setup
-sh install.sh
+sh 000-handson-setup/install.sh
 ```
 
 ## 概要
 
 - KIND クラスター（1コントロールプレーン + 3ワーカーノード）の作成
-- CloudNativePG Cluster オペレーターのインストール
+- EDB CloudNativePG Cluster オペレーターのインストール
 - [EPAS](https://www.enterprisedb.com/docs/epas/) 16 クラスター（3インスタンス構成）のデプロイ
 - [MinIO](https://www.min.io/) を対象とした Barman Object Store バックアップの設定
 - スケジュールバックアップと手動バックアップの実行
 - MinIO 上のバックアップを用いたリカバリ
-- EPAS16.11 から 16.13 へのローリングアップデート
-
 
 ### Helper Scripts
 
@@ -31,7 +26,7 @@ sh install.sh
 |---|---|
 | `00-create-kind-cluster.sh` | KIND クラスターの作成（`kind/kind-config.yaml` を使用） |
 | `01-install-cnpg-c.sh` | CloudNative PostgreSQL オペレーターのインストール（`.env` 設定を使用） |
-| `02-deploy-epas16.11.sh` | EPAS 16.11 データベースのデプロイ（`cluster-barman.yaml` 使用、NodePort パッチ含む） |
+| `02-deploy-epas16.sh` | EPAS 16.11 データベースのデプロイ（`cluster-barman.yaml` 使用、NodePort パッチ含む） |
 
 
 ### バックアップ関連
@@ -46,7 +41,7 @@ sh install.sh
 
 | ファイル/スクリプト | 説明 |
 |---|---|
-| `21-rolling-update-16.13.sh` | EPAS を 16.13 へローリングアップデート実行 |
+| `rolling-update/21-rolling-update-16.13.sh` | EPAS を 16.13 へローリングアップデート実行 |
 | `rolling-update/22-promote-replica.sh` | レプリカをプライマリに昇格 |
 
 ### クリーンアップスクリプト
@@ -56,26 +51,26 @@ sh install.sh
 | `98-del-cnpg-c.sh` | CNPG オペレーターと名前空間の削除 |
 | `99-del-kind.sh` | KIND クラスター全体の削除 |
 
-### マニフェスト
-- `cluster.yaml` - 基本クラスターマニフェスト（バックアップなし、3インスタンス、1Gi ストレージ）
-- `cluster-barman.yaml` - Barman バックアップ機能付きクラスターマニフェスト（推奨）
-- `scheduled-backup.yaml` - スケジュールバックアップ定義（ScheduledBackup リソース）
-- `kind/kind-config.yaml` - KIND クラスター設定（ポートマッピング、4ノード構成）
+### EPAS Cluster マニフェスト
+- `02-cluster-16.14.yaml` - EPAS16 Cluster マニフェスト
 
-### 設定ファイル
+### 環境設定ファイル
 - `dotenv-sample` - 環境変数のサンプル（`.env` にコピーして使用）
 
 
 ### ユーティリティスクリプト
 - `bin/set-ns.sh` - 現在のデフォルト名前空間を変更します。EPASクラスタに対する操作を連続して行う場合は，`edb` に設定することを推奨
 - `bin/decode-yaml.sh` - YAML 内の Base64 エンコードされた値を yq でデコード
-- `fwd-port-minio-console.sh` - MinIO コンソールへのポート転送（http://localhost:9001）
-- `list-cnpg-tags.sh` - CNPG イメージタグのリスト表示（skopeo 使用）
-- `list-epas-tags.sh` - EPAS イメージタグのリスト表示
-- `list-epas16-tags.sh` - EPAS 16 イメージタグのリスト表示（バージョン 16.x）
+- `fwd-port-minio.sh` - MinIO ポート転送（http://localhost:900）
+- `fwd-port-minio-console.sh` - MinIO コンソール ポート転送（http://localhost:9001）
+- `skopeo/list-cnpg-tags.sh` - CNPG イメージタグのリスト表示（skopeo 使用）
+- `skopeo/list-epas-tags.sh` - EPAS イメージタグのリスト表示
+- `skopeo/list-epas16-tags.sh` - EPAS 16 イメージタグのリスト表示（バージョン 16.x）
 
-### サンプル SQL
-- `ddl-dml/create-table-t1.sql` - サンプルテーブル t1 の作成とデータ挿入
+
+### サンプル DDL/DML
+- `ddl-dml/ingest-large-data.sql` - サンプルテーブル t1 の作成とデータ挿入
+
 
 ### MinIO インストール
 - `kind/install-minio.sh` - Helm を使用した MinIO のインストール（スタンドアロンモード、5Gi ストレージ）
@@ -87,8 +82,8 @@ sh install.sh
 - **Docker** - コンテナランタイム
 - **[kind](https://kind.sigs.k8s.io/)** - Kubernetes in Docker
 - **[kubectl](https://kubernetes.io/docs/tasks/tools/)** - Kubernetes CLI
-- OC CLI
-- **[kubectl CNPG プラグイン](https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/oc-plugin/)** - CloudNativePG 管理用
+- **[oc](https://docs.redhat.com/en/documentation/openshift_container_platform/4.22/html/cli_tools/openshift-cli-oc)** - OC CLI
+- **[kubectl CNP プラグイン](https://www.enterprisedb.com/docs/postgres_for_kubernetes/latest/kubectl-plugin/)** - CloudNativePG 管理用
 - **[skopeo](https://github.com/containers/skopeo/blob/main/install.md)** - コンテナイメージの検査とタグ一覧取得用
 - **[Helm](https://helm.sh/)** - MinIO インストール用（バックアップ機能を使用する場合）
 - **[yq](https://github.com/mikefarah/yq)** - YAML 処理用（シークレットのデコードに使用）
@@ -400,8 +395,8 @@ oc get cluster -n edb
 # Pod の状態
 oc get pods -n edb
 
-# CNPG プラグインを使用した詳細状態
-oc cnpg status epas16 -n edb
+# CNP プラグインを使用した詳細状態
+oc cnp status epas16 -n edb
 
 # クラスターの詳細情報
 oc describe cluster epas16 -n edb
@@ -427,7 +422,7 @@ oc logs -n postgresql-operator-system deployment/postgresql-operator-controller-
 
 その後、ブラウザで http://localhost:9001 にアクセスします。
 - **ユーザー名:** `minio_admin`
-- **パスワード:** `minio_admin_0227`
+- **パスワード:** `your_minio_admin_password`
 
 ### 利用可能なイメージタグの確認
 
@@ -473,7 +468,7 @@ export KUBECONFIG=kubeconfig.yaml
 oc cluster-info
 ```
 
-これで `kubeconfig.yaml` にクラスター設定が出力され、そのシェルセッションで有効になります。
+これで `kubeconfig.yaml` にクラスター設定が出力されます。
 
 #### リモートホストから KIND クラスターへアクセス
 
