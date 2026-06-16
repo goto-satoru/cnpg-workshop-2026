@@ -625,3 +625,5 @@ oc port-forward -n edb svc/epas16-rw 5432:5432
 
 ### コミュニティ版 CloudNativePG 
 - [CloudNativePG GitHub](https://github.com/cloudnative-pg/cloudnative-pg)
+
+
