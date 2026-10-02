@@ -36,7 +36,7 @@ kubectl rollout status deployment/postgresql-operator-controller-manager -n $NS_
 echo "CloudNativePG operator installation complete!"
 kubectl get pods -n $NS_OPERATOR
 
-./minio/install-silo.sh
+./silo/install-silo.sh
 
 echo ""
 echo ""

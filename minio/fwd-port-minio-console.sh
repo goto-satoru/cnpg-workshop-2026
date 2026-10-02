@@ -1,4 +1,0 @@
-#!/bin/sh
-
-echo "forward MinIO console to http://localhost:9001"
-kubectl -n edb port-forward svc/minio-console 9001:9001

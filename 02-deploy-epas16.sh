@@ -12,6 +12,8 @@ oc create secret docker-registry $SECRET_NAME \
  --docker-password=$EDB_SUBSCRIPTION_TOKEN \
  -n $NS_EPAS
 
+echo "-------------------------------------------------------------------------"
+echo "Applying EPAS $EPAS_VERSION cluster manifest..."
 oc apply -f 02-cluster-$EPAS_VERSION.yaml
 
 echo "" 

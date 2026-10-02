@@ -4,6 +4,19 @@ kind: Namespace
 metadata:
   name: edb
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backup-storage-creds
+  namespace: edb
+  annotations:
+    alpha.k8s.enterprisedb.io/unrecoverable: "true"
+type: Opaque
+stringData:
+  ACCESS_KEY_ID: silo_admin
+  SECRET_ACCESS_KEY: silo_passwd_1615
+  AWS_REGION: us-east-1
+---
 apiVersion: postgresql.k8s.enterprisedb.io/v1
 kind: Cluster
 metadata:
@@ -17,3 +30,18 @@ spec:
   storage:
     size: 1Gi
 
+  backup:
+    retentionPolicy: "1d" # Keep backups for 1 day
+    barmanObjectStore:
+      destinationPath: "s3://barman"
+      endpointURL: "http://silo.edb.svc.cluster.local:9000"
+      s3Credentials:
+        accessKeyId:
+          name: backup-storage-creds
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: backup-storage-creds
+          key: SECRET_ACCESS_KEY
+      wal:
+        compression: gzip
+        maxParallel: 2
