@@ -6,20 +6,20 @@ elif [ -f ../.env ]; then
     source ../.env
 fi
 
-if helm repo ls | grep -q minio; then
-    echo "MinIO Helm repository already exists. Skipping addition."
-else
-    helm repo add minio https://charts.min.io/
-fi
-helm repo update minio
+# Use local Silo Helm chart from ./silo directory
+SILO_CHART_PATH="./silo"
 
-helm upgrade --install minio minio/minio \
+if [ ! -d "$SILO_CHART_PATH" ]; then
+    echo "Error: Silo Helm chart not found at $SILO_CHART_PATH"
+    exit 1
+fi
+
+helm upgrade --install silo "$SILO_CHART_PATH" \
     --create-namespace \
     --namespace $NS_EPAS \
     --set mode=standalone \
-    --set image.repository=gotosatoru/minio \
-    --set image.tag=RELEASE.2025-10-15T17-29-55Z \
-    --set mode=standalone \
+    --set image.repository=pgsty/silo \
+    --set image.tag=RELEASE.2026-09-16T00-00-00Z \
     --set rootUser=$MINIO_ROOT_USER \
     --set rootPassword=$MINIO_ROOT_PASSWORD \
     --set resources.requests.memory=256Mi \
@@ -30,5 +30,4 @@ helm upgrade --install minio minio/minio \
     --set consoleService.type=ClusterIP \
     --set replicas=1 \
     --set livenessProbe=null \
-    --set readinessProbe=null \
-    --set postJob.enabled=false
+    --set readinessProbe=null

@@ -18,10 +18,10 @@ kubectl create ns $NS_EPAS
 echo "Creating image pull secret $SECRET_NAME..."
 kubectl delete secret $SECRET_NAME -n $NS_OPERATOR --ignore-not-found=true 
 kubectl create secret docker-registry $SECRET_NAME \
-  --docker-server=$CLOUDSMITH \
-  --docker-username=$CS_USER \
-  --docker-password=$EDB_SUBSCRIPTION_TOKEN \
-  -n $NS_OPERATOR
+ --docker-server=$CLOUDSMITH \
+ --docker-username=$CS_USER \
+ --docker-password=$EDB_SUBSCRIPTION_TOKEN \
+ -n $NS_OPERATOR
 
 echo "Verifying secret..."
 kubectl get secret $SECRET_NAME -n $NS_OPERATOR
@@ -36,11 +36,11 @@ kubectl rollout status deployment/postgresql-operator-controller-manager -n $NS_
 echo "CloudNativePG operator installation complete!"
 kubectl get pods -n $NS_OPERATOR
 
-./minio/install-silo.sh
+# ./minio/install-minio.sh
 
 echo ""
 echo ""
-echo "CNPG Cluster and Silo setup complete!"
+echo "CNPG Cluster setup complete!"
 echo "---"
 echo "Run following to monitor the CNPG Cluster deployment:"
 echo "kubectl rollout status deployment postgresql-operator-controller-manager -n $NS_OPERATOR"

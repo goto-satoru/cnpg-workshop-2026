@@ -6,22 +6,22 @@ elif [ -f ../.env ]; then
     source ../.env
 fi
 
-if helm repo ls | grep -q minio; then
-    echo "MinIO Helm repository already exists. Skipping addition."
+if helm repo ls | grep -q silo; then
+    echo "Silo Helm repository already exists. Skipping addition."
 else
-    helm repo add minio https://charts.min.io/
+    helm repo add silo https://charts.silo.run/
 fi
-helm repo update minio
+helm repo update silo
 
-helm upgrade --install minio minio/minio \
+helm upgrade --install silo silo/silo \
     --create-namespace \
     --namespace $NS_EPAS \
     --set mode=standalone \
-    --set image.repository=gotosatoru/minio \
-    --set image.tag=RELEASE.2025-10-15T17-29-55Z \
+    --set image.repository=docker.io/pgsty/silo \
+    --set image.tag=latest \
     --set mode=standalone \
-    --set rootUser=$MINIO_ROOT_USER \
-    --set rootPassword=$MINIO_ROOT_PASSWORD \
+    --set auth.rootUser=$MINIO_ROOT_USER \
+    --set auth.rootPassword=$MINIO_ROOT_PASSWORD \
     --set resources.requests.memory=256Mi \
     --set resources.limits.memory=512Mi \
     --set persistence.enabled=true \
