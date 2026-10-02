@@ -1,11 +1,12 @@
 #!/bin/bash
 
 NS_PG=postgres
-CLUSTER=pg16
+CLUSTER=example
 
-echo "Deploying Postgres 16.2 cluster..."
+echo "Deploying Postgres cluster..."
 
-kubectl apply -f 02-pg-16.2-wo-bak.yaml
+
+kubectl apply -f cluster-pg.yaml
 
 echo "" 
 echo "Run following to monitor the cluster creation process:"

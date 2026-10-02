@@ -130,7 +130,7 @@ MINIO_ROOT_PASSWORD=your_minio_password
 **作成される構成：**
 - クラスター名: `my-k8s`
 - ノード: 1 コントロールプレーン + 3 ワーカー
-- Kubernetes バージョン: v1.34.3
+- Kubernetes バージョン: v1.35.8
 - kubeProxyMode: ipvs
 
 **ポートマッピング：**

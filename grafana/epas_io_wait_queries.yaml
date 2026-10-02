@@ -1,0 +1,57 @@
+# ダッシュボードの「PostgreSQL wait_event IO」行を有効にするための補助設定。
+# CNPGの標準エクスポーターには wait_event 別の内訳メトリクスが無いため、
+# customQueries として以下を追加する。
+#
+# 適用手順:
+#   1. このConfigMapを対象クラスタと同じnamespaceに apply する
+#      kubectl apply -f epas16_io_wait_custom_queries.yaml -n edb
+#   2. CNPG Cluster リソースの spec.monitoring.customQueriesConfigMap に紐付ける
+#      (下記の Cluster patch例を参照)
+#   3. Cluster をreconcile後、Prometheusのターゲットで
+#      cnp_pg_stat_activity_wait_events_count が取得できることを確認する
+#      (メトリクス名はCNPGのcollector実装バージョンにより多少異なる場合があるため、
+#       実際に /metrics エンドポイントを確認して差異があればダッシュボードのクエリを調整すること)
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: epas16-custom-queries
+  namespace: edb
+  labels:
+    cnpg.io/reload: "true"
+data:
+  custom-queries.yaml: |
+    pg_stat_activity_wait_events:
+      query: |
+        SELECT
+          coalesce(wait_event_type, 'none') AS wait_event_type,
+          coalesce(wait_event, 'none') AS wait_event,
+          count(*) AS count
+        FROM pg_stat_activity
+        WHERE pid != pg_backend_pid()
+        GROUP BY wait_event_type, wait_event
+      metrics:
+        - wait_event_type:
+            usage: "LABEL"
+            description: "Wait event category (IO, Lock, LWLock, Client, etc.)"
+        - wait_event:
+            usage: "LABEL"
+            description: "Specific wait event name"
+        - count:
+            usage: "GAUGE"
+            description: "Number of backends currently in this wait state"
+---
+
+
+# CNPG Cluster リソースへの追記例 (既存Clusterのspecにmergeすること)
+#
+# apiVersion: postgresql.cnpg.io/v1
+# kind: Cluster
+# metadata:
+#   name: epas16-cluster
+# spec:
+#   monitoring:
+#     enablePodMonitor: true
+#     customQueriesConfigMap:
+#       - name: epas16-custom-queries
+#         key: custom-queries.yaml
